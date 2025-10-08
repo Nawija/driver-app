@@ -156,7 +156,7 @@ export default function HomePage() {
                     </h1>{" "}
                     <Link
                         href="tel:570037077"
-                        className="text-sm text-white rounded-xl bg-yellow-500 border border-yellow-600 px-4 py-2 hover:bg-green-200 transition-colors font-semibold"
+                        className="text-sm text-white rounded-xl bg-black px-4 py-2.5 hover:bg-green-200 transition-colors font-semibold"
                     >
                         Zadzwoń na salon
                     </Link>{" "}
@@ -198,7 +198,7 @@ export default function HomePage() {
                                 key={o.id}
                                 className={`group border border-gray-300 rounded-2xl p-4 sm:p-5 shadow-sm transition-shadow flex flex-col sm:flex-row gap-4 ${
                                     o.completed
-                                        ? "bg-green-50/80"
+                                        ? " border-green-600 bg-green-50/55"
                                         : "bg-white hover:shadow-md"
                                 }`}
                             >
