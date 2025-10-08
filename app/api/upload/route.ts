@@ -4,17 +4,34 @@ import { NextResponse } from "next/server";
 export const runtime = "edge";
 
 export async function POST(req: Request) {
-  const formData = await req.formData();
-  const file = formData.get("file") as File | null;
+    try {
+        const formData = await req.formData();
+        const file = formData.get("file") as File | null;
 
-  if (!file) {
-    return NextResponse.json({ ok: false, error: "Brak pliku" }, { status: 400 });
-  }
+        if (!file) {
+            return NextResponse.json(
+                { ok: false, error: "Brak pliku" },
+                { status: 400 }
+            );
+        }
 
-  const blob = await put(file.name, file, {
-    access: "public",
-    token: process.env.BLOB_READ_WRITE_TOKEN, // 👈 dodaj to!
-  });
+        console.log(
+            "🟢 BLOB TOKEN:",
+            process.env.BLOB_READ_WRITE_TOKEN ? "OK" : "MISSING"
+        );
 
-  return NextResponse.json({ ok: true, url: blob.url });
+        const blob = await put(file.name, file, {
+            access: "public",
+            token: process.env.BLOB_READ_WRITE_TOKEN,
+            allowOverwrite: true,
+        });
+
+        return NextResponse.json({ ok: true, url: blob.url });
+    } catch (error: any) {
+        console.error("❌ Upload error:", error);
+        return NextResponse.json(
+            { ok: false, error: error.message },
+            { status: 500 }
+        );
+    }
 }
