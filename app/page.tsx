@@ -146,7 +146,7 @@ export default function HomePage() {
     }, []);
 
     return (
-        <div className="min-h-screen bg-white text-gray-800 p-4 sm:p-8">
+        <div className="min-h-screen p-5 sm:p-8">
             {" "}
             <header className="max-w-3xl mx-auto mb-6">
                 {" "}
