@@ -30,3 +30,16 @@ export async function PATCH(
 
   return NextResponse.json({ ok: true });
 }
+
+export async function DELETE(
+  _req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  await initDb();
+  const awaitedParams = await Promise.resolve(params);
+  const { id } = awaitedParams;
+
+  await sql`DELETE FROM orders WHERE id = ${id};`;
+
+  return NextResponse.json({ ok: true });
+}
