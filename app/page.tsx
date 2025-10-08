@@ -69,7 +69,7 @@ export default function HomePage() {
 
   return (
     <div className="max-w-2xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-6">Lista zleceń kierowcy 🚚</h1>
+      <h1 className="text-2xl font-bold mb-6">Dostawy 24.10</h1>
       {orders.map((o) => (
         <div
           key={o.id}
