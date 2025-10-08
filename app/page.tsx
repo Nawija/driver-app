@@ -45,16 +45,21 @@ export default function HomePage() {
         const formData = new FormData();
         formData.append("file", file);
 
-        const res = await fetch("/api/upload", {
-            method: "POST",
-            body: formData,
-        });
-        const data = await res.json();
+        try {
+            const res = await fetch("/api/upload", {
+                method: "POST",
+                body: formData,
+            });
+            const data = await res.json();
 
-        if (data.ok) {
-            await markCompleted(id, data.url);
+            if (data.ok) {
+                await markCompleted(id, data.url);
+            }
+        } catch (err) {
+            alert("❌ Błąd podczas wysyłania zdjęcia.");
+        } finally {
+            setUploading(null);
         }
-        setUploading(null);
     }
 
     useEffect(() => {
@@ -66,6 +71,7 @@ export default function HomePage() {
             <h1 className="text-2xl font-bold mb-6">
                 Lista zleceń kierowcy 🚚
             </h1>
+
             {orders.map((o) => (
                 <div
                     key={o.id}
@@ -73,11 +79,10 @@ export default function HomePage() {
                         o.completed ? "bg-green-50" : "bg-white"
                     }`}
                 >
-                    <div className="flex justify-between">
+                    <div className="flex justify-between items-center">
                         <div>
                             <p>
-                                <strong>{o.client_name}</strong> ({o.time_range}
-                                )
+                                <strong>{o.client_name}</strong> ({o.time_range})
                             </p>
 
                             <a
@@ -97,9 +102,16 @@ export default function HomePage() {
                             <p className="text-xs italic mt-1">{o.type}</p>
                         </div>
 
-                        <div className="text-right">
-                            {!o.completed ? (
-                                <label className="cursor-pointer bg-gray-200 px-3 py-2 rounded text-sm hover:bg-gray-200 transition-colors">
+                        <div className="text-right min-w-[110px]">
+                            {uploading === o.id ? (
+                                <div className="flex flex-col items-center">
+                                    <div className="w-6 h-6 border-2 border-blue-400 border-t-transparent rounded-full animate-spin mb-1"></div>
+                                    <p className="text-xs text-gray-500">
+                                        Wysyłanie...
+                                    </p>
+                                </div>
+                            ) : !o.completed ? (
+                                <label className="cursor-pointer bg-gray-200 px-3 py-2 rounded text-sm hover:bg-gray-300 transition-colors">
                                     Dodaj zdjęcie
                                     <input
                                         type="file"
