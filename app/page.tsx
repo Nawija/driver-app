@@ -55,8 +55,6 @@ export default function HomePage() {
             if (data.ok) {
                 await markCompleted(id, data.url);
             }
-        } catch (err) {
-            alert("❌ Błąd podczas wysyłania zdjęcia.");
         } finally {
             setUploading(null);
         }
@@ -82,7 +80,8 @@ export default function HomePage() {
                     <div className="flex justify-between items-center">
                         <div>
                             <p>
-                                <strong>{o.client_name}</strong> ({o.time_range})
+                                <strong>{o.client_name}</strong> ({o.time_range}
+                                )
                             </p>
 
                             <a
