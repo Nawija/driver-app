@@ -2,8 +2,14 @@ import { sql } from "@vercel/postgres";
 import { NextResponse } from "next/server";
 import { initDb } from "@/lib/db";
 
-export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+export async function PATCH(
+    req: Request,
+    { params }: { params: Promise<{ id: string }> }
+)  {
+
   await initDb();
+  const awaitedParams = await Promise.resolve(params);
+    const { id } = awaitedParams;
   const { photoUrl } = await req.json().catch(() => ({}));
 
   if (photoUrl) {
@@ -12,14 +18,14 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       SET completed = true,
           completed_at = NOW(),
           photo_urls = ARRAY[${photoUrl}]
-      WHERE id = ${params.id};
+      WHERE id = ${id};
     `;
   } else {
     await sql`
       UPDATE orders
       SET completed = true,
           completed_at = NOW()
-      WHERE id = ${params.id};
+      WHERE id = ${id};
     `;
   }
 
