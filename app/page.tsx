@@ -196,7 +196,7 @@ export default function HomePage() {
                         {orders.map((o) => (
                             <li
                                 key={o.id}
-                                className={`group border border-gray-300 rounded-2xl p-4 sm:p-5 shadow-sm transition-shadow flex flex-col sm:flex-row gap-4 ${
+                                className={`group border border-gray-300 rounded-xl p-4 sm:p-5 shadow-sm transition-shadow flex flex-col sm:flex-row gap-4 ${
                                     o.completed
                                         ? " border-green-600 bg-green-50/55"
                                         : "bg-white hover:shadow-md"
@@ -209,13 +209,13 @@ export default function HomePage() {
                                             <div className="flex items-center justify-between w-full gap-2 mt-2 text-sm text-gray-600 mb-6">
                                                 <div className="flex items-center gap-1 text-blue-700">
                                                     <Clock size={27} />
-                                                    <span className="font-medium text-2xl">
+                                                    <span className="font-semibold text-2xl">
                                                         {o.time_range}
                                                     </span>
                                                 </div>
                                                 <div className="flex">
                                                     {o.completed ? (
-                                                        <div className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-green-200 border border-green-100 text-sm text-green-700">
+                                                        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-green-200 border border-green-100 text-sm text-green-700">
                                                             <Check size={14} />
                                                             <span>
                                                                 {formatTime(
@@ -225,7 +225,7 @@ export default function HomePage() {
                                                             </span>
                                                         </div>
                                                     ) : (
-                                                        <div className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-yellow-50 border border-yellow-800/20 text-sm text-yellow-700">
+                                                        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-yellow-50 border border-yellow-800/20 text-sm text-yellow-700">
                                                             <span>
                                                                 Do realizacji
                                                             </span>
@@ -234,22 +234,22 @@ export default function HomePage() {
                                                 </div>
                                             </div>
 
-                                            <h3 className="text-xl font-semibold mb-2">
+                                            <h3 className="text-xl font-semibold mb-2 ml-1">
                                                 {o.client_name}
                                             </h3>
 
-                                            <span className="text-lg inline-block px-3 py-1 -ml-1 rounded-xl bg-blue-100 text-blue-800 font-medium">
+                                            <span className="text-lg inline-block px-3 py-1 rounded-xl bg-blue-100 text-blue-800 font-medium">
                                                 {o.type}
                                             </span>
                                         </div>
                                     </div>
 
                                     {/* contact + address */}
-                                    <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 items-start">
-                                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                                    <div className="mt-3 items-start space-y-3">
+                                        <div className="flex items-center gap-2 w-full">
                                             <a
                                                 href={`tel:${o.phone_number}`}
-                                                className="flex items-center justify-center gap-2 font-medium text-lg text-gray-800 hover:underline"
+                                                className="flex items-center border border-gray-400 px-3 py-1 w-full rounded-xl justify-center gap-2 font-medium text-lg text-gray-800 hover:underline"
                                             >
                                                 <Phone
                                                     size={18}
@@ -259,26 +259,23 @@ export default function HomePage() {
                                                 {o.phone_number}
                                             </a>
                                         </div>
-
-                                        <div className="flex items-center gap-2 ">
+                                        <div className="flex items-center gap-2 w-full">
                                             <a
                                                 href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
                                                     o.address
                                                 )}`}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="flex items-center justify-center gap-2 font-medium text-blue-600 hover:underline"
+                                                className="flex items-center border border-gray-400 px-3 w-full py-1 text-lg rounded-xl justify-center gap-2 font-medium text-blue-600 hover:underline"
                                             >
-                                                <MapPin
-                                                    size={18}
-                                                    className="text-gray-400"
-                                                />
+                                                <MapPin size={18} />
+
                                                 {o.address}
                                             </a>
                                         </div>
                                     </div>
 
-                                    <p className="mt-3 text-lg text-red-600">
+                                    <p className="mt-3 text-lg text-red-600 ml-1">
                                         {o.description}
                                     </p>
 
@@ -311,8 +308,8 @@ export default function HomePage() {
                                 </div>
 
                                 {/* right block - actions */}
-                                <div className="flex-shrink-0 flex flex-col py-2 items-stretch sm:items-end gap-3 w-full sm:w-auto">
-                                    <label className="relative flex items-center gap-2 bg-blue-600 text-white px-4 py-1.5 rounded-xl cursor-pointer hover:bg-blue-700 transition">
+                                <div className="flex-shrink-0 flex flex-col py-2 items-stretch sm:items-end gap-2 w-full sm:w-auto">
+                                    <label className="relative flex items-center gap-2 text-sm font-semibold bg-blue-600 text-white px-4 py-2 rounded-xl cursor-pointer hover:bg-blue-700 transition">
                                         {uploading === o.id ? (
                                             <div className="flex items-center gap-2">
                                                 <span className="loader-border w-4 h-4 border-2 border-white rounded-full border-t-transparent animate-spin"></span>
@@ -356,7 +353,7 @@ export default function HomePage() {
                                                     return;
                                                 markCompleted(o.id);
                                             }}
-                                            className="mt-1 text-sm px-3 py-2 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 transition"
+                                            className="mt-1 text-sm px-3 py-2 rounded-xl border font-semibold border-gray-200 bg-white hover:bg-gray-50 transition"
                                             aria-label="Oznacz jako zrealizowane"
                                         >
                                             Oznacz jako zrealizowane
