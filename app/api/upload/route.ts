@@ -27,11 +27,8 @@ export async function POST(req: Request) {
         });
 
         return NextResponse.json({ ok: true, url: blob.url });
-    } catch (error: any) {
-        console.error("❌ Upload error:", error);
-        return NextResponse.json(
-            { ok: false, error: error.message },
-            { status: 500 }
-        );
+    } catch {
+        console.error("❌ Upload error:");
+        
     }
 }
