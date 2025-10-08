@@ -285,54 +285,50 @@ export default function HomePage() {
                                     {/* photos preview for mobile */}
                                     {o.photo_urls &&
                                         o.photo_urls.length > 0 && (
-                                            <div className="mt-3 flex items-center gap-2">
-                                                {o.photo_urls
-                                                    .slice(0, 3)
-                                                    .map((url, i) => (
-                                                        <button
-                                                            key={i}
-                                                            onClick={() =>
-                                                                setModalSrc(url)
-                                                            }
-                                                            aria-label={`Otwórz zdjęcie ${
+                                            <div className="mt-3 flex flex-wrap items-center gap-2">
+                                                {o.photo_urls.map((url, i) => (
+                                                    <button
+                                                        key={i}
+                                                        onClick={() =>
+                                                            setModalSrc(url)
+                                                        }
+                                                        aria-label={`Otwórz zdjęcie ${
+                                                            i + 1
+                                                        }`}
+                                                        className="w-16 h-16 rounded-md cursor-pointer overflow-hidden border border-gray-100 shadow-sm bg-white"
+                                                    >
+                                                        <img
+                                                            src={url}
+                                                            alt={`Zdjęcie ${
                                                                 i + 1
                                                             }`}
-                                                            className="w-16 h-16 rounded-md cursor-pointer overflow-hidden border border-gray-100 shadow-sm bg-white"
-                                                        >
-                                                            <img
-                                                                src={url}
-                                                                alt={`Zdjęcie ${
-                                                                    i + 1
-                                                                }`}
-                                                                className="w-full h-full object-cover"
-                                                            />
-                                                        </button>
-                                                    ))}
-                                                {o.photo_urls.length > 3 && (
-                                                    <div className="ml-2 text-xs text-gray-400">
-                                                        +
-                                                        {o.photo_urls.length -
-                                                            3}{" "}
-                                                        więcej
-                                                    </div>
-                                                )}
+                                                            className="w-full h-full object-cover"
+                                                        />
+                                                    </button>
+                                                ))}
                                             </div>
                                         )}
                                 </div>
 
                                 {/* right block - actions */}
                                 <div className="flex-shrink-0 flex flex-col py-2 items-stretch sm:items-end gap-3 w-full sm:w-auto">
-                                    <label
-                                        className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-medium cursor-pointer hover:bg-blue-700 transition"
-                                        aria-label="Dodaj zdjęcia"
-                                    >
-                                        <Upload size={16} />
-                                        <span>
-                                            {o.photo_urls &&
-                                            o.photo_urls.length > 0
-                                                ? "Dodaj kolejne zdjęcie"
-                                                : "Dodaj zdjęcie"}
-                                        </span>
+                                    <label className="relative flex items-center gap-2 bg-blue-600 text-white px-4 py-1.5 rounded-xl cursor-pointer hover:bg-blue-700 transition">
+                                        {uploading === o.id ? (
+                                            <div className="flex items-center gap-2">
+                                                <span className="loader-border w-4 h-4 border-2 border-white rounded-full border-t-transparent animate-spin"></span>
+                                                Przesyłanie...
+                                            </div>
+                                        ) : (
+                                            <>
+                                                <Upload size={16} />
+                                                <span>
+                                                    {o.photo_urls &&
+                                                    o.photo_urls.length > 0
+                                                        ? "Dodaj kolejne zdjęcie"
+                                                        : "Dodaj zdjęcie"}
+                                                </span>
+                                            </>
+                                        )}
                                         <input
                                             type="file"
                                             accept="image/*"
