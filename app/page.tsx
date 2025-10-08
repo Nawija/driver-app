@@ -148,7 +148,7 @@ export default function HomePage() {
     return (
         <div className="min-h-screen bg-white text-gray-800 p-4 sm:p-8">
             {" "}
-            <header className="max-w-4xl mx-auto mb-6">
+            <header className="max-w-3xl mx-auto mb-6">
                 {" "}
                 <div className="flex items-center justify-between w-full">
                     <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">
@@ -170,7 +170,7 @@ export default function HomePage() {
                     </div>
                 </div>
             </header>
-            <main className="max-w-4xl mx-auto">
+            <main className="max-w-3xl mx-auto">
                 {/* Loading skeleton */}
                 {loading ? (
                     <div className="space-y-4">
@@ -278,7 +278,7 @@ export default function HomePage() {
                                         </div>
                                     </div>
 
-                                    <p className="mt-3 text-lg text-gray-600">
+                                    <p className="mt-3 text-lg text-red-600">
                                         {o.description}
                                     </p>
 
