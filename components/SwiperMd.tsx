@@ -32,7 +32,7 @@ export function SwiperModal({
         <div
             role="dialog"
             aria-modal="true"
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
             onClick={onClose}
         >
             <div
@@ -42,9 +42,9 @@ export function SwiperModal({
                 <button
                     aria-label="Close gallery"
                     onClick={onClose}
-                    className="absolute top-12 right-12 z-10 bg-white cursor-pointer rounded-full p-2 shadow hover:bg-white"
+                    className="absolute top-12 right-3 md:right-12 z-10 bg-white border-2 text-amber-600 border-amber-500 cursor-pointer rounded-full p-2 shadow hover:bg-white"
                 >
-                    <X size={18} />
+                    <X size={19} />
                 </button>
 
                 <Swiper
@@ -54,7 +54,7 @@ export function SwiperModal({
                     keyboard={{ enabled: true }}
                     zoom={{ maxRatio: 3 }}
                     initialSlide={initialIndex}
-                    className="w-[96vw] h-[96vh]"
+                    className="w-[97vw] h-[97vh]"
                 >
                     {images.map((src, i) => (
                         <SwiperSlide

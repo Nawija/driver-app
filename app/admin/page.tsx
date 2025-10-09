@@ -1,15 +1,7 @@
 "use client";
-import { useEffect, useState, useCallback } from "react";
-import {
-    Phone,
-    MapPin,
-    Upload,
-    Trash2,
-    PlusCircle,
-    X,
-    ChevronLeft,
-    ChevronRight,
-} from "lucide-react";
+import { useEffect, useState } from "react";
+import { Phone, MapPin, Trash2, PlusCircle } from "lucide-react";
+import { SwiperModal } from "@/components/SwiperMd";
 
 type OrderWithTime = Order & {
     startTime: string;
@@ -43,7 +35,10 @@ export default function AdminPage() {
     const [adding, setAdding] = useState(false);
     const [deleting, setDeleting] = useState<number | null>(null);
     const [modalIndex, setModalIndex] = useState<number | null>(null);
-    const [modalPhotos, setModalPhotos] = useState<string[]>([]);
+    const [modal, setModal] = useState<{
+        photos: string[];
+        index: number;
+    } | null>(null);
     const [phoneError, setPhoneError] = useState("");
 
     async function loadOrders() {
@@ -101,45 +96,6 @@ export default function AdminPage() {
     useEffect(() => {
         loadOrders();
     }, []);
-
-    // === SWIPE MODAL HANDLING ===
-    const closeModal = useCallback(() => setModalIndex(null), []);
-
-    useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.key === "Escape") closeModal();
-            if (e.key === "ArrowRight" && modalIndex !== null) {
-                setModalIndex((prev) =>
-                    prev !== null && prev < modalPhotos.length - 1
-                        ? prev + 1
-                        : prev
-                );
-            }
-            if (e.key === "ArrowLeft" && modalIndex !== null) {
-                setModalIndex((prev) =>
-                    prev !== null && prev > 0 ? prev - 1 : prev
-                );
-            }
-        };
-        window.addEventListener("keydown", handleKeyDown);
-        return () => window.removeEventListener("keydown", handleKeyDown);
-    }, [modalIndex, modalPhotos.length, closeModal]);
-
-    // === SWIPE GESTURE ===
-    let startX = 0;
-    const handleTouchStart = (e: React.TouchEvent) => {
-        startX = e.touches[0].clientX;
-    };
-    const handleTouchEnd = (e: React.TouchEvent) => {
-        if (modalIndex === null) return;
-        const endX = e.changedTouches[0].clientX;
-        const deltaX = endX - startX;
-        if (deltaX > 80 && modalIndex > 0) {
-            setModalIndex(modalIndex - 1);
-        } else if (deltaX < -80 && modalIndex < modalPhotos.length - 1) {
-            setModalIndex(modalIndex + 1);
-        }
-    };
 
     // Szacowanie łącznego czasu
     const totalEstimatedTime = orders.reduce((acc, order) => {
@@ -270,36 +226,36 @@ export default function AdminPage() {
                                     )}
                                 </button>
                             </div>
-
                             {o.photo_urls?.length ? (
                                 <div className="flex gap-2 mt-2 flex-wrap">
+                                    {" "}
                                     {o.photo_urls.map((url, i) => (
                                         <img
                                             key={i}
                                             src={url}
                                             alt={`Zdjęcie ${i + 1}`}
-                                            onClick={() => {
-                                                setModalPhotos(
-                                                    o.photo_urls || []
-                                                );
-                                                setModalIndex(i);
-                                            }}
-                                            className="w-20 h-20 object-cover rounded-lg border cursor-pointer hover:opacity-80 transition"
+                                            onClick={() =>
+                                                setModal({
+                                                    photos: o.photo_urls!,
+                                                    index: i,
+                                                })
+                                            }
+                                            className="w-20 h-20 object-cover rounded-lg border cursor-pointer hover:opacity-80"
                                         />
-                                    ))}
+                                    ))}{" "}
                                 </div>
-                            ) : null}
-
+                            ) : null}{" "}
                             <p className="text-sm text-slate-600 mt-1">
-                                🕒 {o.startTime} - {o.endTime}
-                            </p>
-
+                                {" "}
+                                🕒 {o.startTime} - {o.endTime}{" "}
+                            </p>{" "}
                             {o.completed && (
                                 <p className="text-green-700 text-sm font-medium">
+                                    {" "}
                                     ✅ Zrealizowano:{" "}
                                     {new Date(
                                         o.completed_at!
-                                    ).toLocaleTimeString()}
+                                    ).toLocaleTimeString()}{" "}
                                 </p>
                             )}
                         </div>
@@ -438,52 +394,12 @@ export default function AdminPage() {
             </aside>
 
             {/* === SWIPE MODAL === */}
-            {modalIndex !== null && (
-                <div
-                    className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center"
-                    onClick={closeModal}
-                >
-                    <button
-                        className="absolute top-5 right-5 text-white p-2 bg-black/40 rounded-full hover:bg-black/60 transition"
-                        onClick={closeModal}
-                    >
-                        <X size={28} />
-                    </button>
-
-                    <div
-                        className="relative w-full max-w-4xl flex items-center justify-center"
-                        onTouchStart={handleTouchStart}
-                        onTouchEnd={handleTouchEnd}
-                    >
-                        <img
-                            src={modalPhotos[modalIndex]}
-                            alt="Podgląd zdjęcia"
-                            className="max-h-[80vh] rounded-lg object-contain"
-                        />
-                        {modalIndex > 0 && (
-                            <button
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    setModalIndex(modalIndex - 1);
-                                }}
-                                className="absolute left-4 text-white p-3 bg-black/40 rounded-full hover:bg-black/60 transition"
-                            >
-                                <ChevronLeft size={32} />
-                            </button>
-                        )}
-                        {modalIndex < modalPhotos.length - 1 && (
-                            <button
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    setModalIndex(modalIndex + 1);
-                                }}
-                                className="absolute right-4 text-white p-3 bg-black/40 rounded-full hover:bg-black/60 transition"
-                            >
-                                <ChevronRight size={32} />
-                            </button>
-                        )}
-                    </div>
-                </div>
+            {modal && (
+                <SwiperModal
+                    images={modal.photos}
+                    initialIndex={modal.index}
+                    onClose={() => setModal(null)}
+                />
             )}
         </div>
     );
