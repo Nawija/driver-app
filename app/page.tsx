@@ -1,14 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import {
-    Phone,
-    MapPin,
-    Upload,
-    Check,
-    Clock,
-    X,
-} from "lucide-react";
-import Link from "next/link";
+import { Phone, MapPin, Upload, Check, Clock } from "lucide-react";
 import { SwiperModal } from "@/components/SwiperMd";
 
 type Order = {
@@ -36,12 +28,10 @@ function formatTime(time?: string) {
     }
 }
 
-
 export default function HomePage() {
     const [orders, setOrders] = useState<Order[]>([]);
     const [uploading, setUploading] = useState<number | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
-
     const [galleryImages, setGalleryImages] = useState<string[]>([]);
     const [galleryIndex, setGalleryIndex] = useState<number>(0);
 
@@ -50,17 +40,14 @@ export default function HomePage() {
         try {
             const res = await fetch("/api/orders");
             const data: Order[] = await res.json();
-            data.sort((a, b) => {
-                const parseStart = (s = "") => {
-                    const p = s.split("-")[0].trim();
-                    const n = parseInt(p, 10);
-                    return Number.isNaN(n) ? 0 : n;
-                };
-                return parseStart(a.time_range) - parseStart(b.time_range);
-            });
+            data.sort(
+                (a, b) =>
+                    parseInt(a.time_range.split("-")[0].trim()) -
+                    parseInt(b.time_range.split("-")[0].trim())
+            );
             setOrders(data);
         } catch (e) {
-            console.error("Unable to load orders", e);
+            console.error(e);
         } finally {
             setLoading(false);
         }
@@ -75,7 +62,7 @@ export default function HomePage() {
             });
             await loadOrders();
         } catch (e) {
-            console.error("Mark completed failed", e);
+            console.error(e);
         }
     }
 
@@ -93,11 +80,10 @@ export default function HomePage() {
                 const data = await res.json();
                 if (data?.ok && data.url) uploadedUrls.push(data.url);
             }
-
             if (uploadedUrls.length > 0) await markCompleted(id, uploadedUrls);
         } catch (e) {
-            console.error("Upload error", e);
-            alert("Błąd przesyłania. Spróbuj ponownie.");
+            console.error(e);
+            alert("Błąd przesyłania");
         } finally {
             setUploading(null);
         }
@@ -108,201 +94,214 @@ export default function HomePage() {
     }, []);
 
     return (
-        <div className="min-h-screen p-5 sm:p-8">
-            <header className="max-w-3xl mx-auto mb-6">
-                <div className="flex items-center justify-between w-full">
-                    <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">
-                        Lista Dostaw
-                    </h1>
-                    <Link
-                        href="tel:570037077"
-                        className="text-sm text-white rounded-xl bg-black px-4 py-2.5 hover:bg-green-200 transition-colors font-semibold"
-                    >
-                        Zadzwoń na salon
-                    </Link>
-                </div>
-                <div className="text-sm text-gray-600">
-                    <div>
-                        Stan:{" "}
-                        <span className="font-medium text-gray-800">
-                            {orders.length} dostawy
-                        </span>
-                    </div>
+        <div className="min-h-screen bg-gray-50 p-4">
+            {/* HEADER */}
+            <header className="max-w-4xl mx-auto mb-6 flex flex-col gap-4">
+                <h1 className="text-3xl font-bold text-gray-800">
+                    Lista Dostaw
+                </h1>
+                <div className="text-gray-600 text-sm">
+                    Stan:{" "}
+                    <span className="font-medium text-gray-800">
+                        {orders.length} dostawy
+                    </span>
                 </div>
             </header>
 
-            <main className="max-w-3xl mx-auto">
+            {/* LISTA DOSTAW NA GÓRZE */}
+            {orders.length > 0 && (
+                <div className="max-w-4xl mx-auto mb-5 flex flex-col gap-1">
+                    {orders.map((o) => (
+                        <div
+                            key={o.id}
+                            className={`flex items-center justify-between px-4 py-2 cursor-pointer ${
+                                o.completed
+                                    ? "bg-green-100 text-green-700 border-y border-green-400"
+                                    : "bg-gray-100 text-gray-700 border-y border-gray-400"
+                            }`}
+                        >
+                            <a
+                                href={`#order-${o.id}`}
+                                className="flex-1 font-medium hover:underline "
+                            >
+                                {o.time_range} - {o.client_name}
+                            </a>
+                            <div className="flex gap-3">
+                                <a href={`tel:${o.phone_number}`} className="text-white border-green-500 bg-green-600 rounded-xl border p-1.5">
+                                    <Phone size={20}  />
+                                </a>
+                                <a
+                                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                                        o.address
+                                    )}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-white border-blue-500 bg-blue-600 rounded-xl border p-1.5"
+                                >
+                                    <MapPin size={20}  />
+                                </a>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            {/* ORDERS LIST */}
+            <main className="max-w-4xl mx-auto flex flex-col gap-5">
                 {loading ? (
                     <div className="space-y-4">
                         {[1, 2, 3].map((i) => (
                             <div
                                 key={i}
-                                className="animate-pulse bg-gray-50 p-4 rounded-xl border border-gray-100"
+                                className="animate-pulse bg-white p-5 rounded-2xl shadow-sm"
                             >
-                                <div className="h-4 w-1/3 bg-gray-200 rounded mb-3" />
-                                <div className="h-3 w-1/2 bg-gray-200 rounded mb-2" />
-                                <div className="h-10 w-full bg-gray-200 rounded" />
+                                <div className="h-6 w-1/3 bg-gray-200 rounded mb-2" />
+                                <div className="h-4 w-1/2 bg-gray-200 rounded mb-2" />
+                                <div className="h-20 w-full bg-gray-200 rounded" />
                             </div>
                         ))}
                     </div>
                 ) : orders.length === 0 ? (
-                    <div className="bg-gray-50 p-6 rounded-xl border border-dashed border-gray-100 text-center">
-                        <p className="text-gray-600">
-                            Brak zleceń do wyświetlenia.
-                        </p>
+                    <div className="bg-white p-6 rounded-2xl shadow text-center text-gray-500">
+                        Brak zleceń do wyświetlenia.
                     </div>
                 ) : (
-                    <ul className="space-y-4">
-                        {orders.map((o) => (
-                            <li
-                                key={o.id}
-                                className={`group border border-gray-300 rounded-xl p-4 sm:p-5 shadow-sm transition-shadow flex flex-col sm:flex-row gap-4 ${
-                                    o.completed
-                                        ? " border-green-600 bg-green-50/55"
-                                        : "bg-white hover:shadow-md"
-                                }`}
-                            >
-                                <div className="flex-1 min-w-0">
-                                    <div className="flex items-start justify-between gap-3">
-                                        <div className="w-full">
-                                            <div className="flex items-center justify-between w-full gap-2 mt-2 text-sm text-gray-600 mb-6">
-                                                <div className="flex items-center gap-1 text-blue-700">
-                                                    <Clock size={27} />
-                                                    <span className="font-semibold text-2xl">
-                                                        {o.time_range}
-                                                    </span>
-                                                </div>
-                                                <div className="flex">
-                                                    {o.completed ? (
-                                                        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-green-200 border border-green-100 text-sm text-green-700">
-                                                            <Check size={14} />
-                                                            <span>
-                                                                {formatTime(
-                                                                    o.completed_at
-                                                                )}{" "}
-                                                                • Zrealizowano
-                                                            </span>
-                                                        </div>
-                                                    ) : (
-                                                        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-yellow-50 border border-yellow-800/20 text-sm text-yellow-700">
-                                                            <span>
-                                                                Do realizacji
-                                                            </span>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </div>
-
-                                            <h3 className="text-xl font-semibold mb-2 ml-1">
-                                                {o.client_name}
-                                            </h3>
-
-                                            <span className="text-lg inline-block px-3 py-1 rounded-xl bg-blue-100 text-blue-800 font-medium">
-                                                {o.type}
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    <div className="mt-3 items-start space-y-3">
-                                        <div className="flex items-center gap-2 w-full">
-                                            <a
-                                                href={`tel:${o.phone_number}`}
-                                                className="flex items-center border border-gray-400 px-3 py-1 w-full rounded-xl justify-center gap-2 font-medium text-lg text-gray-800 hover:underline"
-                                            >
-                                                <Phone size={18} className="text-gray-400" />
-                                                {o.phone_number}
-                                            </a>
-                                        </div>
-                                        <div className="flex items-center gap-2 w-full">
-                                            <a
-                                                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                                                    o.address
-                                                )}`}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="flex items-center border border-gray-400 px-3 w-full py-1 text-lg rounded-xl justify-center gap-2 font-medium text-blue-600 hover:underline"
-                                            >
-                                                <MapPin size={18} />
-                                                {o.address}
-                                            </a>
-                                        </div>
-                                    </div>
-
-                                    <p className="mt-3 text-lg text-red-600 ml-1">
-                                        {o.description}
-                                    </p>
-
-                                    {o.photo_urls?.length ? (
-                                        <div className="mt-3 flex flex-wrap items-center gap-2">
-                                            {o.photo_urls.map((url, i) => (
-                                                <button
-                                                    key={i}
-                                                    onClick={() => {
-                                                        setGalleryImages(o.photo_urls!);
-                                                        setGalleryIndex(i);
-                                                    }}
-                                                    aria-label={`Otwórz zdjęcie ${i + 1}`}
-                                                    className="w-16 h-16 rounded-md cursor-pointer overflow-hidden border border-gray-100 shadow-sm bg-white"
-                                                >
-                                                    <img
-                                                        src={url}
-                                                        alt={`Zdjęcie ${i + 1}`}
-                                                        className="w-full h-full object-cover"
-                                                    />
-                                                </button>
-                                            ))}
-                                        </div>
-                                    ) : null}
+                    orders.map((o) => (
+                        <div
+                            key={o.id}
+                            id={`order-${o.id}`}
+                            className={`bg-white scroll-m-4 rounded-2xl shadow p-5 flex flex-col gap-4 transition hover:shadow-md ${
+                                o.completed
+                                    ? "border-l-4 border-green-400 bg-green-50"
+                                    : ""
+                            }`}
+                        >
+                            {/* INFO */}
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2 text-gray-700">
+                                    <Clock size={26} />
+                                    <span className="text-2xl font-semibold">
+                                        {o.time_range}
+                                    </span>
                                 </div>
+                                <div
+                                    className={`text-sm font-medium px-3 py-1.5 rounded-xl ${
+                                        o.completed
+                                            ? "bg-green-100 text-green-700"
+                                            : "bg-gray-200 text-gray-700"
+                                    }`}
+                                >
+                                    {o.completed
+                                        ? `Zrealizowano • ${formatTime(
+                                              o.completed_at
+                                          )}`
+                                        : "Do realizacji"}
+                                </div>
+                            </div>
 
-                                <div className="flex-shrink-0 flex flex-col py-2 items-stretch sm:items-end gap-2 w-full sm:w-auto">
-                                    <label className="relative flex items-center gap-2 text-sm font-semibold bg-blue-600 text-white px-4 py-2 rounded-xl cursor-pointer hover:bg-blue-700 transition">
-                                        {uploading === o.id ? (
-                                            <div className="flex items-center gap-2">
-                                                <span className="loader-border w-4 h-4 border-2 border-white rounded-full border-t-transparent animate-spin"></span>
-                                                Przesyłanie...
-                                            </div>
-                                        ) : (
-                                            <>
-                                                <Upload size={16} />
-                                                <span>
-                                                    {o.photo_urls?.length
-                                                        ? "Dodaj kolejne zdjęcie"
-                                                        : "Dodaj zdjęcie"}
-                                                </span>
-                                            </>
-                                        )}
-                                        <input
-                                            type="file"
-                                            accept="image/*"
-                                            multiple
-                                            className="hidden"
-                                            onChange={(e) => {
-                                                const files = e.target.files;
-                                                if (files) handleFileUpload(o.id, files);
-                                            }}
-                                        />
-                                    </label>
+                            <h2 className="text-xl font-semibold text-gray-800">
+                                {o.client_name}
+                            </h2>
+                            <span className="inline-block bg-gray-100 text-gray-700 px-3 py-1 rounded-full font-medium">
+                                {o.type}
+                            </span>
+                            {o.description && (
+                                <p className="text-gray-600 mt-1">
+                                    {o.description}
+                                </p>
+                            )}
 
-                                    {!o.completed && (
+                            {/* CONTACT */}
+                            <div className="flex flex-col gap-2">
+                                <a
+                                    href={`tel:${o.phone_number}`}
+                                    className="flex items-center gap-2 bg-gray-100 rounded-xl px-4 py-2 font-medium hover:bg-gray-200 transition"
+                                >
+                                    <Phone size={20} /> {o.phone_number}
+                                </a>
+                                <a
+                                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                                        o.address
+                                    )}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center gap-2 bg-gray-50 rounded-xl px-4 py-2 text-gray-700 font-medium hover:bg-gray-100 transition"
+                                >
+                                    <MapPin size={20} /> {o.address}
+                                </a>
+                            </div>
+
+                            {/* PHOTOS */}
+                            {o.photo_urls?.length && (
+                                <div className="flex gap-2 mt-2 overflow-x-auto py-1">
+                                    {o.photo_urls.map((url, j) => (
                                         <button
+                                            key={j}
                                             onClick={() => {
-                                                if (!confirm("Oznaczyć jako zrealizowane bez zdjęć?"))
-                                                    return;
-                                                markCompleted(o.id);
+                                                setGalleryImages(o.photo_urls!);
+                                                setGalleryIndex(j);
                                             }}
-                                            className="mt-1 text-sm px-3 py-2 rounded-xl border font-semibold border-gray-200 bg-white hover:bg-gray-50 transition"
+                                            className="w-20 h-20 rounded-xl overflow-hidden shadow-sm flex-shrink-0 cursor-pointer"
                                         >
-                                            Oznacz jako zrealizowane
+                                            <img
+                                                src={url}
+                                                alt={`Zdjęcie ${j + 1}`}
+                                                className="w-full h-full object-cover"
+                                            />
                                         </button>
-                                    )}
+                                    ))}
                                 </div>
-                            </li>
-                        ))}
-                    </ul>
+                            )}
+
+                            {/* ACTIONS */}
+                            <div className="flex flex-col gap-3 mt-2">
+                                <label className="flex items-center justify-center gap-2 px-4 py-3 bg-gray-800 text-white font-semibold rounded-xl hover:bg-gray-700 transition cursor-pointer">
+                                    {uploading === o.id ? (
+                                        <span className="loader-border w-5 h-5 border-2 border-white rounded-full border-t-transparent animate-spin" />
+                                    ) : (
+                                        <>
+                                            <Upload size={20} />{" "}
+                                            {o.photo_urls?.length
+                                                ? "Dodaj kolejne zdjęcie"
+                                                : "Dodaj zdjęcie"}
+                                        </>
+                                    )}
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        multiple
+                                        className="hidden"
+                                        onChange={(e) => {
+                                            const files = e.target.files;
+                                            if (files)
+                                                handleFileUpload(o.id, files);
+                                        }}
+                                    />
+                                </label>
+
+                                {!o.completed && (
+                                    <button
+                                        onClick={() => {
+                                            if (
+                                                !confirm(
+                                                    "Oznaczyć jako zrealizowane bez zdjęć?"
+                                                )
+                                            )
+                                                return;
+                                            markCompleted(o.id);
+                                        }}
+                                        className="px-4 py-2 border rounded-xl font-semibold text-gray-700 hover:bg-gray-100 transition"
+                                    >
+                                        Oznacz jako zrealizowane
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    ))
                 )}
             </main>
 
+            {/* SWIPER MODAL */}
             {galleryImages.length > 0 && (
                 <SwiperModal
                     images={galleryImages}
