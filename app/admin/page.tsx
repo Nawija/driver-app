@@ -1,13 +1,14 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   Phone,
   MapPin,
   Upload,
   Trash2,
   PlusCircle,
-  Clock,
   X,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 
 type Order = {
@@ -36,17 +37,9 @@ export default function AdminPage() {
   });
   const [adding, setAdding] = useState(false);
   const [deleting, setDeleting] = useState<number | null>(null);
-  const [galleryImages, setGalleryImages] = useState<string[]>([]);
-  const [galleryIndex, setGalleryIndex] = useState(0);
+  const [modalIndex, setModalIndex] = useState<number | null>(null);
+  const [modalPhotos, setModalPhotos] = useState<string[]>([]);
 
-  // ========== HELPERS ==========
-  const formatTime = (dateString?: string) => {
-    if (!dateString) return "";
-    const d = new Date(dateString);
-    return d.toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" });
-  };
-
-  // ========== LOAD ORDERS ==========
   async function loadOrders() {
     setLoading(true);
     try {
@@ -61,7 +54,6 @@ export default function AdminPage() {
     }
   }
 
-  // ========== ADD ORDER ==========
   async function handleAdd(e: React.FormEvent) {
     e.preventDefault();
     setAdding(true);
@@ -87,7 +79,6 @@ export default function AdminPage() {
     }
   }
 
-  // ========== DELETE ORDER ==========
   async function deleteOrder(id: number) {
     if (!confirm("Na pewno chcesz usunąć to zlecenie?")) return;
     setDeleting(id);
@@ -101,166 +92,151 @@ export default function AdminPage() {
     }
   }
 
-  // ========== USE EFFECT ==========
   useEffect(() => {
     loadOrders();
   }, []);
 
+  // === SWIPE MODAL HANDLING ===
+  const closeModal = useCallback(() => setModalIndex(null), []);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closeModal();
+      if (e.key === "ArrowRight" && modalIndex !== null) {
+        setModalIndex((prev) =>
+          prev !== null && prev < modalPhotos.length - 1 ? prev + 1 : prev
+        );
+      }
+      if (e.key === "ArrowLeft" && modalIndex !== null) {
+        setModalIndex((prev) =>
+          prev !== null && prev > 0 ? prev - 1 : prev
+        );
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [modalIndex, modalPhotos.length, closeModal]);
+
+  // === SWIPE GESTURE ===
+  let startX = 0;
+  const handleTouchStart = (e: React.TouchEvent) => {
+    startX = e.touches[0].clientX;
+  };
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (modalIndex === null) return;
+    const endX = e.changedTouches[0].clientX;
+    const deltaX = endX - startX;
+    if (deltaX > 80 && modalIndex > 0) {
+      setModalIndex(modalIndex - 1);
+    } else if (deltaX < -80 && modalIndex < modalPhotos.length - 1) {
+      setModalIndex(modalIndex + 1);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col md:flex-row gap-6 p-4 md:p-6">
-      {/* MAIN SECTION */}
-      <div className="flex-1">
-        {/* HEADER */}
-        <header className="max-w-4xl mx-auto mb-6 flex flex-col gap-2">
-          <h1 className="text-3xl font-bold text-gray-800">Lista Dostaw</h1>
-          <p className="text-gray-600 text-sm">
-            Ilość dostaw:{" "}
-            <span className="font-semibold text-gray-800">
-              {orders.length}
-            </span>
-          </p>
+    <div className="min-h-screen bg-gray-50 p-4 md:p-6 flex flex-col md:flex-row gap-6">
+      {/* === MAIN LIST === */}
+      <main className="flex-1 flex flex-col gap-4">
+        <header className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold text-gray-800">Zlecenia</h1>
+          <span className="text-gray-500">({orders.length})</span>
         </header>
 
-        {/* SHORT LIST (LINKS) */}
-        {orders.length > 0 && (
-          <div className="max-w-4xl mx-auto mb-5 flex flex-col gap-1">
-            {orders.map((o) => (
-              <a
-                key={o.id}
-                href={`#order-${o.id}`}
-                className={`flex items-center justify-between px-4 py-3 rounded-lg cursor-pointer transition ${
-                  o.completed
-                    ? "bg-green-100 text-green-800 border-l-4 border-green-500"
-                    : "bg-gray-100 text-gray-700 border-l-4 border-gray-400"
-                } hover:bg-gray-200`}
+        {loading ? (
+          <div className="space-y-4">
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="animate-pulse bg-white p-5 rounded-2xl shadow-sm"
               >
-                <div className="flex flex-col">
-                  <span className="font-medium">
-                    {o.time_range} — {o.client_name}
-                  </span>
-                  <span className="text-sm text-gray-600">{o.address}</span>
-                </div>
-                <div className="flex gap-3">
-                  <a
-                    href={`tel:${o.phone_number}`}
-                    className="bg-green-600 text-white p-1.5 rounded-xl hover:bg-green-700 transition"
-                  >
-                    <Phone size={18} />
-                  </a>
-                  <a
-                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                      o.address
-                    )}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="bg-blue-600 text-white p-1.5 rounded-xl hover:bg-blue-700 transition"
-                  >
-                    <MapPin size={18} />
-                  </a>
-                </div>
-              </a>
+                <div className="h-6 w-1/3 bg-gray-200 rounded mb-2" />
+                <div className="h-4 w-1/2 bg-gray-200 rounded mb-2" />
+                <div className="h-20 w-full bg-gray-200 rounded" />
+              </div>
             ))}
           </div>
-        )}
-
-        {/* FULL LIST */}
-        <main className="max-w-4xl mx-auto flex flex-col gap-5">
-          {loading ? (
-            <div className="space-y-4">
-              {[1, 2, 3].map((i) => (
-                <div
-                  key={i}
-                  className="animate-pulse bg-white p-5 rounded-2xl shadow-sm"
-                >
-                  <div className="h-6 w-1/3 bg-gray-200 rounded mb-2" />
-                  <div className="h-4 w-1/2 bg-gray-200 rounded mb-2" />
-                  <div className="h-20 w-full bg-gray-200 rounded" />
-                </div>
-              ))}
-            </div>
-          ) : orders.length === 0 ? (
-            <div className="bg-white p-6 rounded-2xl shadow text-center text-gray-500">
-              Brak zleceń do wyświetlenia.
-            </div>
-          ) : (
-            orders.map((o) => (
-              <section
-                key={o.id}
-                id={`order-${o.id}`}
-                className={`scroll-mt-16 bg-white rounded-2xl shadow p-5 flex flex-col gap-4 transition hover:shadow-md ${
-                  o.completed
-                    ? "border-l-4 border-green-500 bg-green-50"
-                    : "border-l-4 border-gray-200"
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-gray-700">
-                    <Clock size={20} />
-                    <span className="text-lg font-semibold">
-                      {o.time_range}
-                    </span>
-                  </div>
-                  <span
-                    className={`text-sm px-3 py-1 rounded-xl font-medium ${
-                      o.completed
-                        ? "bg-green-100 text-green-800"
-                        : "bg-gray-100 text-gray-700"
-                    }`}
-                  >
-                    {o.completed
-                      ? `Zrealizowano • ${formatTime(o.completed_at)}`
-                      : "Do realizacji"}
+        ) : orders.length === 0 ? (
+          <div className="bg-white p-6 rounded-2xl shadow text-center text-gray-500">
+            Brak zleceń.
+          </div>
+        ) : (
+          orders.map((o) => (
+            <div
+              key={o.id}
+              className={`bg-white rounded-2xl shadow p-5 flex flex-col gap-3 transition hover:shadow-md ${
+                o.completed ? "border-l-4 border-green-400 bg-green-50" : ""
+              }`}
+            >
+              <div className="flex justify-between items-start">
+                <div className="flex flex-col gap-1">
+                  <h2 className="text-lg font-semibold text-gray-800">
+                    {o.client_name}
+                  </h2>
+                  <span className="text-sm text-gray-500">
+                    {o.time_range} • {o.type}
                   </span>
-                </div>
-
-                <h2 className="text-xl font-semibold text-gray-800">
-                  {o.client_name}
-                </h2>
-                <p className="text-gray-600">{o.type}</p>
-                {o.description && (
-                  <p className="text-gray-700 text-sm">{o.description}</p>
-                )}
-
-                <div className="flex flex-col gap-2">
-                  <a
-                    href={`tel:${o.phone_number}`}
-                    className="flex items-center gap-2 bg-gray-100 px-3 py-2 rounded-xl hover:bg-gray-200 transition text-gray-800"
-                  >
-                    <Phone size={18} /> {o.phone_number}
-                  </a>
+                  {o.description && (
+                    <p className="text-gray-600 text-sm mt-1">{o.description}</p>
+                  )}
                   <a
                     href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
                       o.address
                     )}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-xl hover:bg-gray-100 transition text-gray-800"
+                    className="flex items-center gap-2 text-gray-700 hover:text-blue-600 mt-1"
                   >
                     <MapPin size={18} /> {o.address}
                   </a>
-                </div>
-
-                {/* DELETE BUTTON */}
-                <div className="flex justify-end mt-3">
-                  <button
-                    onClick={() => deleteOrder(o.id)}
-                    disabled={deleting === o.id}
-                    className="flex items-center gap-1 px-3 py-2 bg-red-500 text-white rounded-xl hover:bg-red-600 transition text-sm"
+                  <a
+                    href={`tel:${o.phone_number}`}
+                    className="flex items-center gap-2 text-gray-700 hover:text-blue-600"
                   >
-                    <Trash2 size={16} />
-                    {deleting === o.id ? "Usuwanie..." : "Usuń"}
-                  </button>
+                    <Phone size={18} /> {o.phone_number}
+                  </a>
                 </div>
-              </section>
-            ))
-          )}
-        </main>
-      </div>
 
-      {/* SIDEBAR FORM */}
+                <button
+                  onClick={() => deleteOrder(o.id)}
+                  disabled={deleting === o.id}
+                  className="bg-red-500 text-white px-3 py-1.5 rounded-xl hover:bg-red-600 text-sm font-medium transition"
+                >
+                  {deleting === o.id ? "..." : <Trash2 size={18} />}
+                </button>
+              </div>
+
+              {o.photo_urls?.length ? (
+                <div className="flex gap-2 mt-2 flex-wrap">
+                  {o.photo_urls.map((url, i) => (
+                    <img
+                      key={i}
+                      src={url}
+                      alt={`Zdjęcie ${i + 1}`}
+                      onClick={() => {
+                        setModalPhotos(o.photo_urls || []);
+                        setModalIndex(i);
+                      }}
+                      className="w-20 h-20 object-cover rounded-lg border cursor-pointer hover:opacity-80 transition"
+                    />
+                  ))}
+                </div>
+              ) : null}
+
+              {o.completed && (
+                <p className="text-green-700 text-sm font-medium">
+                  ✅ Zrealizowano:{" "}
+                  {new Date(o.completed_at!).toLocaleTimeString()}
+                </p>
+              )}
+            </div>
+          ))
+        )}
+      </main>
+
+      {/* === SIDEBAR FORM === */}
       <aside className="md:w-[360px] w-full bg-white rounded-2xl shadow p-5 h-fit sticky top-6 self-start">
         <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2 mb-3">
-          <PlusCircle className="text-blue-600" /> Dodaj dostawę
+          <PlusCircle className="text-blue-600" /> Dodaj zlecenie
         </h2>
 
         <form onSubmit={handleAdd} className="flex flex-col gap-3">
@@ -316,10 +292,59 @@ export default function AdminPage() {
             disabled={adding}
             className="bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-semibold transition-all"
           >
-            {adding ? "Dodawanie..." : "Dodaj dostawę"}
+            {adding ? "Dodawanie..." : "Dodaj zlecenie"}
           </button>
         </form>
       </aside>
+
+      {/* === SWIPE MODAL === */}
+      {modalIndex !== null && (
+        <div
+          className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center"
+          onClick={closeModal}
+        >
+          <button
+            className="absolute top-5 right-5 text-white p-2 bg-black/40 rounded-full hover:bg-black/60 transition"
+            onClick={closeModal}
+          >
+            <X size={28} />
+          </button>
+
+          <div
+            className="relative w-full max-w-4xl flex items-center justify-center"
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+          >
+            <img
+              src={modalPhotos[modalIndex]}
+              alt="Podgląd zdjęcia"
+              className="max-h-[80vh] rounded-lg object-contain"
+            />
+            {modalIndex > 0 && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setModalIndex(modalIndex - 1);
+                }}
+                className="absolute left-4 text-white p-3 bg-black/40 rounded-full hover:bg-black/60 transition"
+              >
+                <ChevronLeft size={32} />
+              </button>
+            )}
+            {modalIndex < modalPhotos.length - 1 && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setModalIndex(modalIndex + 1);
+                }}
+                className="absolute right-4 text-white p-3 bg-black/40 rounded-full hover:bg-black/60 transition"
+              >
+                <ChevronRight size={32} />
+              </button>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -109,7 +109,7 @@ export default function HomePage() {
             </header>
 
             {/* LISTA DOSTAW NA GÓRZE */}
-            {orders.length > 0 && (
+            {/* {orders.length > 0 && (
                 <div className="max-w-4xl mx-auto mb-5 flex flex-col gap-1">
                     {orders.map((o) => (
                         <div
@@ -150,7 +150,7 @@ export default function HomePage() {
                         </div>
                     ))}
                 </div>
-            )}
+            )} */}
 
             {/* ORDERS LIST */}
             <main className="max-w-4xl mx-auto flex flex-col gap-5">
@@ -176,10 +176,10 @@ export default function HomePage() {
                         <div
                             key={o.id}
                             id={`order-${o.id}`}
-                            className={`bg-white scroll-m-4 rounded-2xl shadow p-5 flex flex-col gap-4 transition hover:shadow-md ${
+                            className={`scroll-m-4 rounded-2xl shadow p-5 flex flex-col gap-4 transition hover:shadow-md ${
                                 o.completed
-                                    ? "border-l-4 border-green-400 bg-green-50"
-                                    : ""
+                                    ? "border-l-4 border-green-400 bg-green-50/60"
+                                    : "bg-white"
                             }`}
                         >
                             {/* INFO */}
@@ -198,9 +198,7 @@ export default function HomePage() {
                                     }`}
                                 >
                                     {o.completed
-                                        ? `Zrealizowano • ${formatTime(
-                                              o.completed_at
-                                          )}`
+                                        ? `Zrealizowano`
                                         : "Do realizacji"}
                                 </div>
                             </div>
@@ -212,7 +210,7 @@ export default function HomePage() {
                                 {o.type}
                             </span>
                             {o.description && (
-                                <p className="text-gray-600 mt-1">
+                                <p className="text-gray-800 ml-1 mt-1">
                                     {o.description}
                                 </p>
                             )}
@@ -221,7 +219,7 @@ export default function HomePage() {
                             <div className="flex flex-col gap-2">
                                 <a
                                     href={`tel:${o.phone_number}`}
-                                    className="flex items-center gap-2 bg-gray-100 rounded-xl px-4 py-2 font-medium hover:bg-gray-200 transition"
+                                    className="flex items-center gap-2 bg-green-50 rounded-xl px-4 py-2 font-medium hover:bg-green-100 transition-colors"
                                 >
                                     <Phone size={20} /> {o.phone_number}
                                 </a>
@@ -231,7 +229,7 @@ export default function HomePage() {
                                     )}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="flex items-center gap-2 bg-gray-50 rounded-xl px-4 py-2 text-gray-700 font-medium hover:bg-gray-100 transition"
+                                    className="flex items-center gap-2 bg-blue-50 rounded-xl px-4 py-2 text-gray-700 font-medium hover:bg-blue-100 transition-colors"
                                 >
                                     <MapPin size={20} /> {o.address}
                                 </a>
