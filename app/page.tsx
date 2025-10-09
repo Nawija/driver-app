@@ -101,9 +101,9 @@ export default function HomePage() {
                     Lista Dostaw
                 </h1>
                 <div className="text-gray-600 text-sm">
-                    Stan:{" "}
-                    <span className="font-medium text-gray-800">
-                        {orders.length} dostawy
+                    Ilość dostaw:{" "}
+                    <span className="font-medium text-base text-gray-800">
+                        ({orders.length}) 
                     </span>
                 </div>
             </header>
@@ -124,11 +124,17 @@ export default function HomePage() {
                                 href={`#order-${o.id}`}
                                 className="flex-1 font-medium hover:underline "
                             >
-                                {o.time_range} - {o.client_name}
+                                <div>
+                                    {o.time_range} - {o.client_name}
+                                    <p className="text-sm">{o.address}</p>
+                                </div>{" "}
                             </a>
                             <div className="flex gap-3">
-                                <a href={`tel:${o.phone_number}`} className="text-white border-green-500 bg-green-600 rounded-xl border p-1.5">
-                                    <Phone size={20}  />
+                                <a
+                                    href={`tel:${o.phone_number}`}
+                                    className="text-white border-green-500 bg-green-600 rounded-xl border p-1.5"
+                                >
+                                    <Phone size={20} />
                                 </a>
                                 <a
                                     href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
@@ -138,7 +144,7 @@ export default function HomePage() {
                                     rel="noopener noreferrer"
                                     className="text-white border-blue-500 bg-blue-600 rounded-xl border p-1.5"
                                 >
-                                    <MapPin size={20}  />
+                                    <MapPin size={20} />
                                 </a>
                             </div>
                         </div>
