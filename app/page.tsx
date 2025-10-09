@@ -103,7 +103,7 @@ export default function HomePage() {
                 <div className="text-gray-600 text-sm">
                     Ilość dostaw:{" "}
                     <span className="font-medium text-base text-gray-800">
-                        ({orders.length}) 
+                        ({orders.length})
                     </span>
                 </div>
             </header>
@@ -156,7 +156,7 @@ export default function HomePage() {
             <main className="max-w-4xl mx-auto flex flex-col gap-5">
                 {loading ? (
                     <div className="space-y-4">
-                        {[1, 2, 3].map((i) => (
+                        {Array.from({ length: 4 }).map((_, i) => (
                             <div
                                 key={i}
                                 className="animate-pulse bg-white p-5 rounded-2xl shadow-sm"

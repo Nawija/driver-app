@@ -42,7 +42,7 @@ export function SwiperModal({
                 <button
                     aria-label="Close gallery"
                     onClick={onClose}
-                    className="absolute top-3 right-3 z-10 bg-white cursor-pointer rounded-full p-2 shadow hover:bg-white"
+                    className="absolute top-12 right-12 z-10 bg-white cursor-pointer rounded-full p-2 shadow hover:bg-white"
                 >
                     <X size={18} />
                 </button>
