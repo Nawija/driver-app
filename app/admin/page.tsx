@@ -11,6 +11,11 @@ import {
     ChevronRight,
 } from "lucide-react";
 
+type OrderWithTime = Order & {
+    startTime: string;
+    endTime: string;
+};
+
 type Order = {
     id: number;
     client_name: string;
@@ -144,6 +149,35 @@ export default function AdminPage() {
         return acc;
     }, 0);
 
+    // 📦 Szacowanie godzin dostaw
+    const startHour = 10; // start 10:00
+    let currentTime = startHour;
+
+    const deliveriesWithTime: OrderWithTime[] = orders.map((o) => {
+        let duration = 0;
+        if (o.type === "Transport") duration = 0.5; // 30 min
+        if (o.type === "Transport + wniesienie") duration = 1.6; // 1h36min
+        if (o.type === "Transport + wniesienie + montaż") duration = 2.6; // 2h36min
+
+        const start = currentTime;
+        const end = currentTime + duration;
+        currentTime = end + 0.33; // dodajemy 20 minut dojazdu do następnego punktu
+
+        const formatTime = (t: number) => {
+            const hours = Math.floor(t);
+            const minutes = Math.round((t - hours) * 60);
+            return `${hours.toString().padStart(2, "0")}:${minutes
+                .toString()
+                .padStart(2, "0")}`;
+        };
+
+        return {
+            ...o,
+            startTime: formatTime(start),
+            endTime: formatTime(end),
+        };
+    });
+
     return (
         <div className="min-h-screen bg-gray-50 p-4 md:p-6 flex flex-col md:flex-row gap-6">
             {/* === MAIN LIST === */}
@@ -183,7 +217,7 @@ export default function AdminPage() {
                         Brak zleceń.
                     </div>
                 ) : (
-                    orders.map((o) => (
+                    deliveriesWithTime.map((o) => (
                         <div
                             key={o.id}
                             className={`bg-white rounded-2xl shadow p-5 flex flex-col gap-3 transition hover:shadow-md ${
@@ -254,6 +288,10 @@ export default function AdminPage() {
                                     ))}
                                 </div>
                             ) : null}
+
+                            <p className="text-sm text-slate-600 mt-1">
+                                🕒 {o.startTime} - {o.endTime}
+                            </p>
 
                             {o.completed && (
                                 <p className="text-green-700 text-sm font-medium">
