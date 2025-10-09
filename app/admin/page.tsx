@@ -190,6 +190,7 @@ export default function AdminPage() {
                                 ({orders.length})
                             </span>
                         </span>
+
                         <span className="text-sm text-slate-600">
                             ⏱️ Szacowany czas:{" "}
                             <span className="font-semibold text-slate-800">
@@ -307,103 +308,133 @@ export default function AdminPage() {
             </main>
 
             {/* === SIDEBAR FORM === */}
-            <aside className="md:w-[360px] w-full bg-white rounded-2xl shadow p-5 h-fit sticky top-6 self-start">
-                <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2 mb-3">
-                    <PlusCircle className="text-blue-600" /> Dodaj zlecenie
-                </h2>
+            <aside className="md:w-[360px] w-full h-fit sticky top-6 self-start space-y-6">
+                <div className="w-full bg-white p-6 shadow rounded-2xl">
+                    <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2 mb-3">
+                        <PlusCircle className="text-blue-600" /> Dodaj zlecenie
+                    </h2>
 
-                <form onSubmit={handleAdd} className="flex flex-col gap-3">
-                    <input
-                        type="text"
-                        value={form.clientName}
-                        placeholder="Imię i nazwisko klienta"
-                        className="border border-gray-300 rounded-lg px-3 py-2 bg-gray-50 focus:ring-2 focus:ring-blue-500 outline-none"
-                        onChange={(e) =>
-                            setForm({ ...form, clientName: e.target.value })
-                        }
-                        required
-                    />
-                    <input
-                        type="tel"
-                        value={form.phoneNumber}
-                        placeholder="Numer telefonu"
-                        className={`border rounded-lg px-3 py-2 bg-gray-50 focus:ring-2 outline-none transition-all ${
-                            phoneError
-                                ? "border-red-400 focus:ring-red-400"
-                                : "border-gray-300 focus:ring-blue-500"
-                        }`}
-                        onChange={(e) => {
-                            const value = e.target.value;
-                            setForm({ ...form, phoneNumber: value });
+                    <form onSubmit={handleAdd} className="flex flex-col gap-3">
+                        <input
+                            type="text"
+                            value={form.clientName}
+                            placeholder="Imię i nazwisko klienta"
+                            className="border border-gray-300 rounded-lg px-3 py-2 bg-gray-50 focus:ring-2 focus:ring-blue-500 outline-none"
+                            onChange={(e) =>
+                                setForm({ ...form, clientName: e.target.value })
+                            }
+                            required
+                        />
+                        <input
+                            type="tel"
+                            value={form.phoneNumber}
+                            placeholder="Numer telefonu"
+                            className={`border rounded-lg px-3 py-2 bg-gray-50 focus:ring-2 outline-none transition-all ${
+                                phoneError
+                                    ? "border-red-400 focus:ring-red-400"
+                                    : "border-gray-300 focus:ring-blue-500"
+                            }`}
+                            onChange={(e) => {
+                                const value = e.target.value;
+                                setForm({ ...form, phoneNumber: value });
 
-                            // Walidacja PL (9 cyfr, tylko liczby)
-                            const phoneRegex = /^[0-9]{9}$/;
-                            if (!phoneRegex.test(value)) {
-                                setPhoneError(
-                                    "Podaj poprawny 9-cyfrowy numer telefonu"
+                                // Walidacja PL (9 cyfr, tylko liczby)
+                                const phoneRegex = /^[0-9]{9}$/;
+                                if (!phoneRegex.test(value)) {
+                                    setPhoneError(
+                                        "Podaj poprawny 9-cyfrowy numer telefonu"
+                                    );
+                                } else {
+                                    setPhoneError("");
+                                }
+                            }}
+                            required
+                        />
+                        {phoneError && (
+                            <p className="text-red-500 text-sm mt-1">
+                                {phoneError}
+                            </p>
+                        )}
+
+                        <input
+                            type="text"
+                            value={form.timeRange}
+                            placeholder="Przedział godzinowy (np. 12-14)"
+                            className="border border-gray-300 rounded-lg px-3 py-2 bg-gray-50 focus:ring-2 focus:ring-blue-500 outline-none"
+                            onChange={(e) =>
+                                setForm({ ...form, timeRange: e.target.value })
+                            }
+                        />
+                        <input
+                            type="text"
+                            value={form.address}
+                            placeholder="Adres dostawy"
+                            className="border border-gray-300 rounded-lg px-3 py-2 bg-gray-50 focus:ring-2 focus:ring-blue-500 outline-none"
+                            onChange={(e) =>
+                                setForm({ ...form, address: e.target.value })
+                            }
+                            required
+                        />
+                        <textarea
+                            value={form.description}
+                            placeholder="Opis (opcjonalnie)"
+                            className="border border-gray-300 rounded-lg px-3 py-2 bg-gray-50 focus:ring-2 focus:ring-blue-500 outline-none min-h-[70px]"
+                            onChange={(e) =>
+                                setForm({
+                                    ...form,
+                                    description: e.target.value,
+                                })
+                            }
+                        />
+                        <select
+                            value={form.type}
+                            className="border border-gray-300 rounded-lg px-3 py-2 bg-gray-50 focus:ring-2 focus:ring-blue-500 outline-none"
+                            onChange={(e) =>
+                                setForm({ ...form, type: e.target.value })
+                            }
+                        >
+                            <option value="Transport">Sam transport</option>
+                            <option value="Transport + wniesienie">
+                                Transport + wniesienie
+                            </option>
+                            <option value="Transport + wniesienie + montaż">
+                                Transport + wniesienie + montaż
+                            </option>
+                        </select>
+
+                        <button
+                            disabled={adding}
+                            className="bg-blue-600 hover:bg-blue-700 cursor-pointer text-white py-2 rounded-lg font-semibold transition-all"
+                        >
+                            {adding ? "Dodawanie..." : "Dodaj zlecenie"}
+                        </button>
+                    </form>
+                </div>
+                <div className="w-full bg-white p-6 shadow rounded-2xl">
+                    <button
+                        onClick={async () => {
+                            try {
+                                const res = await fetch(
+                                    "/api/export-transports"
                                 );
-                            } else {
-                                setPhoneError("");
+                                if (!res.ok) throw new Error("Błąd eksportu");
+                                const blob = await res.blob();
+                                const url = window.URL.createObjectURL(blob);
+                                const a = document.createElement("a");
+                                a.href = url;
+                                a.download = `transporty-${orders.length}x.zip`;
+                                a.click();
+                                window.URL.revokeObjectURL(url);
+                            } catch (err) {
+                                alert("Nie udało się pobrać pliku.");
+                                console.error(err);
                             }
                         }}
-                        required
-                    />
-                    {phoneError && (
-                        <p className="text-red-500 text-sm mt-1">
-                            {phoneError}
-                        </p>
-                    )}
-
-                    <input
-                        type="text"
-                        value={form.timeRange}
-                        placeholder="Przedział godzinowy (np. 12-14)"
-                        className="border border-gray-300 rounded-lg px-3 py-2 bg-gray-50 focus:ring-2 focus:ring-blue-500 outline-none"
-                        onChange={(e) =>
-                            setForm({ ...form, timeRange: e.target.value })
-                        }
-                    />
-                    <input
-                        type="text"
-                        value={form.address}
-                        placeholder="Adres dostawy"
-                        className="border border-gray-300 rounded-lg px-3 py-2 bg-gray-50 focus:ring-2 focus:ring-blue-500 outline-none"
-                        onChange={(e) =>
-                            setForm({ ...form, address: e.target.value })
-                        }
-                        required
-                    />
-                    <textarea
-                        value={form.description}
-                        placeholder="Opis (opcjonalnie)"
-                        className="border border-gray-300 rounded-lg px-3 py-2 bg-gray-50 focus:ring-2 focus:ring-blue-500 outline-none min-h-[70px]"
-                        onChange={(e) =>
-                            setForm({ ...form, description: e.target.value })
-                        }
-                    />
-                    <select
-                        value={form.type}
-                        className="border border-gray-300 rounded-lg px-3 py-2 bg-gray-50 focus:ring-2 focus:ring-blue-500 outline-none"
-                        onChange={(e) =>
-                            setForm({ ...form, type: e.target.value })
-                        }
+                        className="bg-emerald-600 hover:bg-emerald-700 cursor-pointer w-full text-white px-4 py-2 rounded-lg font-semibold transition"
                     >
-                        <option value="Transport">Sam transport</option>
-                        <option value="Transport + wniesienie">
-                            Transport + wniesienie
-                        </option>
-                        <option value="Transport + wniesienie + montaż">
-                            Transport + wniesienie + montaż
-                        </option>
-                    </select>
-
-                    <button
-                        disabled={adding}
-                        className="bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-semibold transition-all"
-                    >
-                        {adding ? "Dodawanie..." : "Dodaj zlecenie"}
+                        📦 Ściągnij transporty
                     </button>
-                </form>
+                </div>
             </aside>
 
             {/* === SWIPE MODAL === */}
