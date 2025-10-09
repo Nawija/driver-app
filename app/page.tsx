@@ -6,10 +6,10 @@ import {
     Upload,
     Check,
     Clock,
-    Image as ImgIcon,
     X,
 } from "lucide-react";
 import Link from "next/link";
+import { SwiperModal } from "@/components/SwiperMd";
 
 type Order = {
     id: number;
@@ -36,50 +36,14 @@ function formatTime(time?: string) {
     }
 }
 
-/** Simple image modal */
-function ImageModal({
-    src,
-    onClose,
-}: {
-    src: string | null;
-    onClose: () => void;
-}) {
-    if (!src) return null;
-    return (
-        <div
-            role="dialog"
-            aria-modal="true"
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60"
-            onClick={onClose}
-        >
-            <div
-                className="relative max-w-[90vw] max-h-[90vh] rounded-lg overflow-hidden bg-white"
-                onClick={(e) => e.stopPropagation()}
-            >
-                {" "}
-                <button
-                    aria-label="Zamknij podgląd"
-                    onClick={onClose}
-                    className="absolute top-3 right-3 z-10 bg-white/80 rounded-full p-2 shadow"
-                >
-                    {" "}
-                    <X size={18} />{" "}
-                </button>{" "}
-                <img
-                    src={src}
-                    alt="Podgląd zdjęcia"
-                    className="block max-w-full max-h-[80vh] object-contain"
-                />{" "}
-            </div>{" "}
-        </div>
-    );
-}
 
 export default function HomePage() {
     const [orders, setOrders] = useState<Order[]>([]);
     const [uploading, setUploading] = useState<number | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
-    const [modalSrc, setModalSrc] = useState<string | null>(null);
+
+    const [galleryImages, setGalleryImages] = useState<string[]>([]);
+    const [galleryIndex, setGalleryIndex] = useState<number>(0);
 
     async function loadOrders() {
         setLoading(true);
@@ -122,12 +86,10 @@ export default function HomePage() {
             for (const file of Array.from(files)) {
                 const formData = new FormData();
                 formData.append("file", file);
-
                 const res = await fetch("/api/upload", {
                     method: "POST",
                     body: formData,
                 });
-
                 const data = await res.json();
                 if (data?.ok && data.url) uploadedUrls.push(data.url);
             }
@@ -147,19 +109,17 @@ export default function HomePage() {
 
     return (
         <div className="min-h-screen p-5 sm:p-8">
-            {" "}
             <header className="max-w-3xl mx-auto mb-6">
-                {" "}
                 <div className="flex items-center justify-between w-full">
                     <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">
                         Lista Dostaw
-                    </h1>{" "}
+                    </h1>
                     <Link
                         href="tel:570037077"
                         className="text-sm text-white rounded-xl bg-black px-4 py-2.5 hover:bg-green-200 transition-colors font-semibold"
                     >
                         Zadzwoń na salon
-                    </Link>{" "}
+                    </Link>
                 </div>
                 <div className="text-sm text-gray-600">
                     <div>
@@ -170,8 +130,8 @@ export default function HomePage() {
                     </div>
                 </div>
             </header>
+
             <main className="max-w-3xl mx-auto">
-                {/* Loading skeleton */}
                 {loading ? (
                     <div className="space-y-4">
                         {[1, 2, 3].map((i) => (
@@ -202,7 +162,6 @@ export default function HomePage() {
                                         : "bg-white hover:shadow-md"
                                 }`}
                             >
-                                {/* left block */}
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-start justify-between gap-3">
                                         <div className="w-full">
@@ -244,18 +203,13 @@ export default function HomePage() {
                                         </div>
                                     </div>
 
-                                    {/* contact + address */}
                                     <div className="mt-3 items-start space-y-3">
                                         <div className="flex items-center gap-2 w-full">
                                             <a
                                                 href={`tel:${o.phone_number}`}
                                                 className="flex items-center border border-gray-400 px-3 py-1 w-full rounded-xl justify-center gap-2 font-medium text-lg text-gray-800 hover:underline"
                                             >
-                                                <Phone
-                                                    size={18}
-                                                    className="text-gray-400"
-                                                />
-
+                                                <Phone size={18} className="text-gray-400" />
                                                 {o.phone_number}
                                             </a>
                                         </div>
@@ -269,7 +223,6 @@ export default function HomePage() {
                                                 className="flex items-center border border-gray-400 px-3 w-full py-1 text-lg rounded-xl justify-center gap-2 font-medium text-blue-600 hover:underline"
                                             >
                                                 <MapPin size={18} />
-
                                                 {o.address}
                                             </a>
                                         </div>
@@ -279,35 +232,29 @@ export default function HomePage() {
                                         {o.description}
                                     </p>
 
-                                    {/* photos preview for mobile */}
-                                    {o.photo_urls &&
-                                        o.photo_urls.length > 0 && (
-                                            <div className="mt-3 flex flex-wrap items-center gap-2">
-                                                {o.photo_urls.map((url, i) => (
-                                                    <button
-                                                        key={i}
-                                                        onClick={() =>
-                                                            setModalSrc(url)
-                                                        }
-                                                        aria-label={`Otwórz zdjęcie ${
-                                                            i + 1
-                                                        }`}
-                                                        className="w-16 h-16 rounded-md cursor-pointer overflow-hidden border border-gray-100 shadow-sm bg-white"
-                                                    >
-                                                        <img
-                                                            src={url}
-                                                            alt={`Zdjęcie ${
-                                                                i + 1
-                                                            }`}
-                                                            className="w-full h-full object-cover"
-                                                        />
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        )}
+                                    {o.photo_urls?.length ? (
+                                        <div className="mt-3 flex flex-wrap items-center gap-2">
+                                            {o.photo_urls.map((url, i) => (
+                                                <button
+                                                    key={i}
+                                                    onClick={() => {
+                                                        setGalleryImages(o.photo_urls!);
+                                                        setGalleryIndex(i);
+                                                    }}
+                                                    aria-label={`Otwórz zdjęcie ${i + 1}`}
+                                                    className="w-16 h-16 rounded-md cursor-pointer overflow-hidden border border-gray-100 shadow-sm bg-white"
+                                                >
+                                                    <img
+                                                        src={url}
+                                                        alt={`Zdjęcie ${i + 1}`}
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                </button>
+                                            ))}
+                                        </div>
+                                    ) : null}
                                 </div>
 
-                                {/* right block - actions */}
                                 <div className="flex-shrink-0 flex flex-col py-2 items-stretch sm:items-end gap-2 w-full sm:w-auto">
                                     <label className="relative flex items-center gap-2 text-sm font-semibold bg-blue-600 text-white px-4 py-2 rounded-xl cursor-pointer hover:bg-blue-700 transition">
                                         {uploading === o.id ? (
@@ -319,8 +266,7 @@ export default function HomePage() {
                                             <>
                                                 <Upload size={16} />
                                                 <span>
-                                                    {o.photo_urls &&
-                                                    o.photo_urls.length > 0
+                                                    {o.photo_urls?.length
                                                         ? "Dodaj kolejne zdjęcie"
                                                         : "Dodaj zdjęcie"}
                                                 </span>
@@ -333,11 +279,7 @@ export default function HomePage() {
                                             className="hidden"
                                             onChange={(e) => {
                                                 const files = e.target.files;
-                                                if (files)
-                                                    handleFileUpload(
-                                                        o.id,
-                                                        files
-                                                    );
+                                                if (files) handleFileUpload(o.id, files);
                                             }}
                                         />
                                     </label>
@@ -345,16 +287,11 @@ export default function HomePage() {
                                     {!o.completed && (
                                         <button
                                             onClick={() => {
-                                                if (
-                                                    !confirm(
-                                                        "Oznaczyć jako zrealizowane bez zdjęć?"
-                                                    )
-                                                )
+                                                if (!confirm("Oznaczyć jako zrealizowane bez zdjęć?"))
                                                     return;
                                                 markCompleted(o.id);
                                             }}
                                             className="mt-1 text-sm px-3 py-2 rounded-xl border font-semibold border-gray-200 bg-white hover:bg-gray-50 transition"
-                                            aria-label="Oznacz jako zrealizowane"
                                         >
                                             Oznacz jako zrealizowane
                                         </button>
@@ -365,7 +302,14 @@ export default function HomePage() {
                     </ul>
                 )}
             </main>
-            <ImageModal src={modalSrc} onClose={() => setModalSrc(null)} />
+
+            {galleryImages.length > 0 && (
+                <SwiperModal
+                    images={galleryImages}
+                    initialIndex={galleryIndex}
+                    onClose={() => setGalleryImages([])}
+                />
+            )}
         </div>
     );
 }
