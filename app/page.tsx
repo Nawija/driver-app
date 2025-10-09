@@ -7,7 +7,6 @@ type Order = {
     id: number;
     client_name: string;
     phone_number: string;
-    time_range: string;
     description: string;
     type: string;
     address: string;
@@ -16,17 +15,6 @@ type Order = {
     photo_urls?: string[];
 };
 
-function formatTime(time?: string) {
-    if (!time) return "";
-    try {
-        return new Date(time).toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-        });
-    } catch {
-        return time;
-    }
-}
 
 export default function HomePage() {
     const [orders, setOrders] = useState<Order[]>([]);
@@ -40,11 +28,7 @@ export default function HomePage() {
         try {
             const res = await fetch("/api/orders");
             const data: Order[] = await res.json();
-            data.sort(
-                (a, b) =>
-                    parseInt(a.time_range.split("-")[0].trim()) -
-                    parseInt(b.time_range.split("-")[0].trim())
-            );
+         
             setOrders(data);
         } catch (e) {
             console.error(e);
@@ -108,50 +92,6 @@ export default function HomePage() {
                 </div>
             </header>
 
-            {/* LISTA DOSTAW NA GÓRZE */}
-            {/* {orders.length > 0 && (
-                <div className="max-w-4xl mx-auto mb-5 flex flex-col gap-1">
-                    {orders.map((o) => (
-                        <div
-                            key={o.id}
-                            className={`flex items-center justify-between px-4 py-2 cursor-pointer ${
-                                o.completed
-                                    ? "bg-green-100 text-green-700 border-y border-green-400"
-                                    : "bg-gray-100 text-gray-700 border-y border-gray-400"
-                            }`}
-                        >
-                            <a
-                                href={`#order-${o.id}`}
-                                className="flex-1 font-medium hover:underline "
-                            >
-                                <div>
-                                    {o.time_range} - {o.client_name}
-                                    <p className="text-sm">{o.address}</p>
-                                </div>{" "}
-                            </a>
-                            <div className="flex gap-3">
-                                <a
-                                    href={`tel:${o.phone_number}`}
-                                    className="text-white border-green-500 bg-green-600 rounded-xl border p-1.5"
-                                >
-                                    <Phone size={20} />
-                                </a>
-                                <a
-                                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                                        o.address
-                                    )}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-white border-blue-500 bg-blue-600 rounded-xl border p-1.5"
-                                >
-                                    <MapPin size={20} />
-                                </a>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            )} */}
-
             {/* ORDERS LIST */}
             <main className="max-w-4xl mx-auto flex flex-col gap-5">
                 {loading ? (
@@ -186,9 +126,7 @@ export default function HomePage() {
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2 text-gray-700">
                                     <Clock size={26} />
-                                    <span className="text-2xl font-semibold">
-                                        {o.time_range}
-                                    </span>
+                                    
                                 </div>
                                 <div
                                     className={`text-sm font-medium px-3 py-1.5 rounded-xl ${

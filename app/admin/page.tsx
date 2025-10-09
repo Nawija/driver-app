@@ -35,7 +35,7 @@ export default function AdminPage() {
     });
     const [adding, setAdding] = useState(false);
     const [deleting, setDeleting] = useState<number | null>(null);
-    const [modalIndex, setModalIndex] = useState<number | null>(null);
+    const [travelCalculated, setTravelCalculated] = useState(false);
     const [modal, setModal] = useState<{
         photos: string[];
         index: number;
@@ -73,6 +73,7 @@ export default function AdminPage() {
                 type: "Transport",
                 address: "",
             });
+            setTravelCalculated(false);
             loadOrders();
         } catch (e) {
             console.error(e);
@@ -98,52 +99,40 @@ export default function AdminPage() {
         loadOrders();
     }, []);
 
-    // Szacowanie łącznego czasu z dojazdami
-    const totalEstimatedTime = orders.reduce((acc, order) => {
-        let baseTime = 0;
-        if (order.type === "Transport") baseTime = 0.5;
-        if (order.type === "Transport + wniesienie") baseTime = 1;
-        if (order.type === "Transport + wniesienie + montaż") baseTime = 2;
+    const formatStartTime = (t: number) => {
+        const hours = Math.floor(t);
+        const minutes = Math.round((t - hours) * 60);
+        return minutes < 30 ? hours : hours + 1;
+    };
 
-        const travelTimeHours = order.travelTime ? order.travelTime / 60 : 0.5;
-        return acc + baseTime + travelTimeHours - 0.1;
-    }, 0);
-
+    const formatEndTime = (start: number, duration: number) => {
+        let end = start + duration;
+        const hours = Math.floor(end);
+        const minutes = Math.round((end - hours) * 60);
+        let rounded = minutes < 30 ? hours : hours + 1;
+        if (rounded <= start) rounded = start + 1; // upewniamy się, że end > start
+        return rounded;
+    };
     // 📦 Szacowanie godzin dostaw
     const startHour = 10; // start 10:00
     let currentTime = startHour;
 
-    const deliveriesWithTime: OrderWithTime[] = orders.map((o) => {
-        let duration = 0;
-        if (o.type === "Transport") duration = 0.5; // 30 min
-        if (o.type === "Transport + wniesienie") duration = 1; // 1h36min
-        if (o.type === "Transport + wniesienie + montaż") duration = 2; // 2h36min
+    const deliveriesWithTime = orders.map((o) => {
+        const duration =
+            o.type === "Transport"
+                ? 0.5
+                : o.type === "Transport + wniesienie"
+                ? 1
+                : 2;
 
-        const start = currentTime;
-        const end = currentTime + duration;
-        currentTime = end + (o.travelTime ? o.travelTime / 60 : 0.5);
-
-        const formatTime = (t: number) => {
-            let hours = Math.floor(t);
-            let minutes = Math.ceil((t - hours) * 60);
-
-            // Zaokrąglamy do góry do najbliższej 30 minut
-            if (minutes > 0 && minutes <= 30) {
-                minutes = 30;
-            } else if (minutes > 30) {
-                hours += 1;
-                minutes = 0;
-            }
-
-            return `${hours.toString().padStart(2, "0")}:${minutes
-                .toString()
-                .padStart(2, "0")}`;
-        };
+        const startHour = formatStartTime(currentTime);
+        const endHour = formatEndTime(startHour, duration);
+        currentTime = endHour;
 
         return {
             ...o,
-            startTime: formatTime(start),
-            endTime: formatTime(end),
+            startTime: `${startHour}:00`,
+            endTime: `${endHour}:00`,
         };
     });
 
@@ -203,12 +192,13 @@ export default function AdminPage() {
 
     useEffect(() => {
         (async () => {
-            if (orders.length > 2) {
+            if (orders.length > 1 && !travelCalculated) {
                 const withTravelTimes = await calculateTravelTimes(orders);
                 setOrders(withTravelTimes);
+                setTravelCalculated(true); // oznacza, że travelTime już policzone
             }
         })();
-    }, [orders.length]);
+    }, [orders, travelCalculated]);
 
     return (
         <div className="min-h-screen bg-gray-50 p-4 md:p-6 flex flex-col md:flex-row gap-6">
