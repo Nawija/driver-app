@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Phone, MapPin, Trash2, PlusCircle } from "lucide-react";
+import { Phone, MapPin, Trash2, PlusCircle, Clock } from "lucide-react";
 import { SwiperModal } from "@/components/SwiperMd";
 
 type OrderWithTime = Order & {
@@ -105,8 +105,8 @@ export default function AdminPage() {
         if (order.type === "Transport + wniesienie") baseTime = 1;
         if (order.type === "Transport + wniesienie + montaż") baseTime = 2;
 
-        const travelTimeHours = order.travelTime ? order.travelTime / 60 : 0.5; // domyślnie 20 min jeśli brak danych
-        return acc + baseTime + travelTimeHours;
+        const travelTimeHours = order.travelTime ? order.travelTime / 60 : 0.5;
+        return acc + baseTime + travelTimeHours - 0.1;
     }, 0);
 
     // 📦 Szacowanie godzin dostaw
@@ -124,8 +124,17 @@ export default function AdminPage() {
         currentTime = end + (o.travelTime ? o.travelTime / 60 : 0.5);
 
         const formatTime = (t: number) => {
-            const hours = Math.floor(t);
-            const minutes = Math.round((t - hours) * 60);
+            let hours = Math.floor(t);
+            let minutes = Math.ceil((t - hours) * 60);
+
+            // Zaokrąglamy do góry do najbliższej 30 minut
+            if (minutes > 0 && minutes <= 30) {
+                minutes = 30;
+            } else if (minutes > 30) {
+                hours += 1;
+                minutes = 0;
+            }
+
             return `${hours.toString().padStart(2, "0")}:${minutes
                 .toString()
                 .padStart(2, "0")}`;
@@ -194,7 +203,7 @@ export default function AdminPage() {
 
     useEffect(() => {
         (async () => {
-            if (orders.length > 1) {
+            if (orders.length > 2) {
                 const withTravelTimes = await calculateTravelTimes(orders);
                 setOrders(withTravelTimes);
             }
@@ -211,13 +220,6 @@ export default function AdminPage() {
                             Ilość dostaw:{" "}
                             <span className="font-medium text-xl text-gray-800">
                                 ({orders.length})
-                            </span>
-                        </span>
-
-                        <span className="text-sm text-slate-600">
-                            ⏱️ Szacowany czas:{" "}
-                            <span className="font-semibold text-slate-800">
-                                {totalEstimatedTime.toFixed(1)} h
                             </span>
                         </span>
                     </div>
@@ -252,11 +254,17 @@ export default function AdminPage() {
                         >
                             <div className="flex justify-between items-start">
                                 <div className="flex flex-col gap-1">
+                                    <div className="flex items-center gap-1">
+                                        <Clock />
+                                        <p className="text-2xl">
+                                            {o.startTime} - {o.endTime}
+                                        </p>
+                                    </div>
                                     <h2 className="text-lg font-semibold text-gray-800">
                                         {o.client_name}
                                     </h2>
                                     <span className="text-sm text-gray-500">
-                                        {o.time_range} • {o.type}
+                                        {o.type}
                                     </span>
                                     {o.description && (
                                         <p className="text-gray-600 text-sm mt-1">
@@ -309,13 +317,9 @@ export default function AdminPage() {
                                             }
                                             className="w-20 h-20 object-cover rounded-lg border cursor-pointer hover:opacity-80"
                                         />
-                                    ))}{" "}
+                                    ))}
                                 </div>
-                            ) : null}{" "}
-                            <p className="text-sm text-slate-600 mt-1">
-                                {" "}
-                                🕒 {o.startTime} - {o.endTime}{" "}
-                            </p>{" "}
+                            ) : null}
                             {o.completed && (
                                 <p className="text-green-700 text-sm font-medium">
                                     {" "}
@@ -379,15 +383,6 @@ export default function AdminPage() {
                             </p>
                         )}
 
-                        <input
-                            type="text"
-                            value={form.timeRange}
-                            placeholder="Przedział godzinowy (np. 12-14)"
-                            className="border border-gray-300 rounded-lg px-3 py-2 bg-gray-50 focus:ring-2 focus:ring-blue-500 outline-none"
-                            onChange={(e) =>
-                                setForm({ ...form, timeRange: e.target.value })
-                            }
-                        />
                         <input
                             type="text"
                             value={form.address}

@@ -11,15 +11,15 @@ export async function GET() {
 
 export async function POST(req: Request) {
   await initDb();
-  const { clientName, phoneNumber, timeRange, description, type, address } = await req.json();
+  const { clientName, phoneNumber, description, type, address } = await req.json();
 
-  if (!clientName || !timeRange || !type || !address || !phoneNumber) {
+  if (!clientName  || !type || !address || !phoneNumber) {
     return NextResponse.json({ ok: false, error: "Missing fields" });
   }
 
   await sql`
-    INSERT INTO orders (client_name, phone_number, time_range, description, type, address)
-    VALUES (${clientName}, ${phoneNumber}, ${timeRange}, ${description}, ${type}, ${address});
+    INSERT INTO orders (client_name, phone_number, description, type, address)
+    VALUES (${clientName}, ${phoneNumber}, ${description}, ${type}, ${address});
   `;
 
   return NextResponse.json({ ok: true });
