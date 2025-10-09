@@ -19,6 +19,7 @@ type Order = {
     completed: boolean;
     completed_at?: string;
     photo_urls?: string[];
+    travelTime?: number;
 };
 
 export default function AdminPage() {
@@ -97,12 +98,15 @@ export default function AdminPage() {
         loadOrders();
     }, []);
 
-    // Szacowanie łącznego czasu
+    // Szacowanie łącznego czasu z dojazdami
     const totalEstimatedTime = orders.reduce((acc, order) => {
-        if (order.type === "Transport") return acc + 0.5;
-        if (order.type === "Transport + wniesienie") return acc + 1.6;
-        if (order.type === "Transport + wniesienie + montaż") return acc + 2.6;
-        return acc;
+        let baseTime = 0;
+        if (order.type === "Transport") baseTime = 0.5;
+        if (order.type === "Transport + wniesienie") baseTime = 1;
+        if (order.type === "Transport + wniesienie + montaż") baseTime = 2;
+
+        const travelTimeHours = order.travelTime ? order.travelTime / 60 : 0.5; // domyślnie 20 min jeśli brak danych
+        return acc + baseTime + travelTimeHours;
     }, 0);
 
     // 📦 Szacowanie godzin dostaw
@@ -112,12 +116,12 @@ export default function AdminPage() {
     const deliveriesWithTime: OrderWithTime[] = orders.map((o) => {
         let duration = 0;
         if (o.type === "Transport") duration = 0.5; // 30 min
-        if (o.type === "Transport + wniesienie") duration = 1.6; // 1h36min
-        if (o.type === "Transport + wniesienie + montaż") duration = 2.6; // 2h36min
+        if (o.type === "Transport + wniesienie") duration = 1; // 1h36min
+        if (o.type === "Transport + wniesienie + montaż") duration = 2; // 2h36min
 
         const start = currentTime;
         const end = currentTime + duration;
-        currentTime = end + 0.33; // dodajemy 20 minut dojazdu do następnego punktu
+        currentTime = end + (o.travelTime ? o.travelTime / 60 : 0.5);
 
         const formatTime = (t: number) => {
             const hours = Math.floor(t);
@@ -133,6 +137,69 @@ export default function AdminPage() {
             endTime: formatTime(end),
         };
     });
+
+    // Sortowanie po godzinie startu (rosnąco)
+    deliveriesWithTime.sort((a, b) => {
+        const [aH, aM] = a.startTime.split(":").map(Number);
+        const [bH, bM] = b.startTime.split(":").map(Number);
+        return aH * 60 + aM - (bH * 60 + bM);
+    });
+
+    async function calculateTravelTimes(orders: Order[]) {
+        const updated = [];
+
+        for (let i = 0; i < orders.length - 1; i++) {
+            const originAddress = orders[i].address;
+            const destinationAddress = orders[i + 1].address;
+
+            try {
+                // Geokodowanie
+                const [originGeo, destinationGeo] = await Promise.all([
+                    fetch("/api/geocode", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ address: originAddress }),
+                    }).then((r) => r.json()),
+
+                    fetch("/api/geocode", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ address: destinationAddress }),
+                    }).then((r) => r.json()),
+                ]);
+
+                // Obliczanie trasy
+                const routeRes = await fetch("/api/travel-time", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        origins: originGeo,
+                        destinations: destinationGeo,
+                    }),
+                });
+
+                const routeData = await routeRes.json();
+                const travelMinutes = routeData.duration / 60; // sekundy → minuty
+
+                updated.push({ ...orders[i], travelTime: travelMinutes });
+            } catch (err) {
+                console.error("Błąd przeliczania trasy:", err);
+                updated.push({ ...orders[i], travelTime: 20 }); // fallback 20 min
+            }
+        }
+
+        updated.push({ ...orders[orders.length - 1], travelTime: 0 });
+        return updated;
+    }
+
+    useEffect(() => {
+        (async () => {
+            if (orders.length > 1) {
+                const withTravelTimes = await calculateTravelTimes(orders);
+                setOrders(withTravelTimes);
+            }
+        })();
+    }, [orders.length]);
 
     return (
         <div className="min-h-screen bg-gray-50 p-4 md:p-6 flex flex-col md:flex-row gap-6">
