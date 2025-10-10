@@ -145,13 +145,14 @@ export default function AdminPage() {
                                 ({orders.length})
                             </span>
                         </span>
+                        
                     </div>
                 </div>
 
                 {/* 🌀 Pokazuj loading animację przy przeliczaniu */}
                 {loading || calculating ? (
                     <div className="space-y-4 animate-pulse">
-                        {[1, 2, 3,4].map((i) => (
+                        {[1, 2, 3, 4].map((i) => (
                             <div
                                 key={i}
                                 className="bg-white p-5 rounded-2xl shadow-sm"
@@ -167,7 +168,7 @@ export default function AdminPage() {
                         Brak zleceń.
                     </div>
                 ) : (
-                    deliveriesWithTime.map((o) => (
+                    orders.map((o) => (
                         <div
                             key={o.id}
                             className={`bg-white rounded-2xl shadow p-5 flex flex-col gap-3 transition hover:shadow-md ${
@@ -178,11 +179,11 @@ export default function AdminPage() {
                         >
                             <div className="flex justify-between items-start">
                                 <div className="flex flex-col gap-1">
-                                    {o.travelTime != null && (
+                                    {o.time_range && (
                                         <div className="flex items-center gap-1">
                                             <Clock />
                                             <p className="text-2xl">
-                                                {o.startTime} - {o.endTime}
+                                                {o.time_range}
                                             </p>
                                         </div>
                                     )}

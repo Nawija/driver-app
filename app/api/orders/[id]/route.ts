@@ -1,8 +1,7 @@
-//api/orders/[id]/route.ts
 import { sql } from "@vercel/postgres";
 import { NextResponse } from "next/server";
 import { initDb } from "@/lib/db";
-import { del } from "@vercel/blob"; // ✅ dodajemy
+import { del } from "@vercel/blob";
 
 export async function PATCH(
   req: Request,
@@ -11,26 +10,48 @@ export async function PATCH(
   await initDb();
   const awaitedParams = await Promise.resolve(params);
   const { id } = awaitedParams;
-  const { photoUrls } = await req.json().catch(() => ({}));
 
-  if (photoUrls && photoUrls.length > 0) {
-    await sql`
-      UPDATE orders
-      SET completed = true,
-          completed_at = NOW(),
-          photo_urls = COALESCE(photo_urls, '{}') || ${photoUrls}
-      WHERE id = ${id};
-    `;
-  } else {
-    await sql`
-      UPDATE orders
-      SET completed = true,
-          completed_at = NOW()
-      WHERE id = ${id};
-    `;
+  const body = await req.json().catch(() => ({}));
+  const { photoUrls, time_range } = body;
+
+  try {
+    // 🔹 Jeśli przyszło `time_range` – aktualizujemy tylko czas
+    if (time_range) {
+      await sql`
+        UPDATE orders
+        SET time_range = ${time_range}
+        WHERE id = ${id};
+      `;
+      return NextResponse.json({ ok: true, updated: "time_range" });
+    }
+
+    // 🔹 Jeśli przyszły zdjęcia – kończymy zlecenie + zapisujemy zdjęcia
+    if (photoUrls && photoUrls.length > 0) {
+      await sql`
+        UPDATE orders
+        SET completed = true,
+            completed_at = NOW(),
+            photo_urls = COALESCE(photo_urls, '{}') || ${photoUrls}
+        WHERE id = ${id};
+      `;
+    } else {
+      // 🔹 Brak zdjęć — tylko zakończ zlecenie
+      await sql`
+        UPDATE orders
+        SET completed = true,
+            completed_at = NOW()
+        WHERE id = ${id};
+      `;
+    }
+
+    return NextResponse.json({ ok: true });
+  } catch (err) {
+    console.error("❌ Błąd PATCH:", err);
+    return NextResponse.json(
+      { ok: false, error: "Błąd przy aktualizacji zlecenia" },
+      { status: 500 }
+    );
   }
-
-  return NextResponse.json({ ok: true });
 }
 
 export async function DELETE(
@@ -42,14 +63,12 @@ export async function DELETE(
   const { id } = awaitedParams;
 
   try {
-    // ✅ najpierw pobieramy photo_urls z bazy
     const { rows } = await sql`
       SELECT photo_urls FROM orders WHERE id = ${id};
     `;
 
     const photoUrls = rows[0]?.photo_urls || [];
 
-    // ✅ jeśli są zdjęcia – usuwamy je z Blob
     if (Array.isArray(photoUrls) && photoUrls.length > 0) {
       for (const url of photoUrls) {
         try {
@@ -61,12 +80,14 @@ export async function DELETE(
       }
     }
 
-    // ✅ dopiero teraz usuwamy rekord z bazy
     await sql`DELETE FROM orders WHERE id = ${id};`;
 
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error("❌ Błąd DELETE:", err);
-    return NextResponse.json({ ok: false, error: "Błąd przy usuwaniu zlecenia" }, { status: 500 });
+    return NextResponse.json(
+      { ok: false, error: "Błąd przy usuwaniu zlecenia" },
+      { status: 500 }
+    );
   }
 }
