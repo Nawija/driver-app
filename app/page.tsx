@@ -139,10 +139,13 @@ export default function HomePage() {
                         >
                             {/* INFO */}
                             <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2 text-2xl text-gray-700">
-                                    <Clock size={26} />
-                                    {o.time_range}
-                                </div>
+                                {o.time_range && (
+                                    <div className="flex items-center gap-2 text-2xl text-gray-700">
+                                        <Clock size={26} />
+                                        {o.time_range}
+                                    </div>
+                                )}
+
                                 <div
                                     className={`text-sm font-medium px-3 py-1.5 rounded-xl ${
                                         o.completed
