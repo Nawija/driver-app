@@ -1,6 +1,13 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Phone, MapPin, Trash2, PlusCircle, Clock } from "lucide-react";
+import {
+    Phone,
+    MapPin,
+    Trash2,
+    PlusCircle,
+    Clock,
+    Loader2,
+} from "lucide-react"; // 🌀 Dodano Loader2
 import { SwiperModal } from "@/components/SwiperMd";
 
 type Order = {
@@ -36,6 +43,7 @@ export default function AdminPage() {
         index: number;
     } | null>(null);
     const [phoneError, setPhoneError] = useState("");
+    const [calculating, setCalculating] = useState(false); // 🌀 Stan do spinnera
 
     async function loadOrders() {
         setLoading(true);
@@ -93,55 +101,41 @@ export default function AdminPage() {
         loadOrders();
     }, []);
 
-    const formatStartTime = (t: number) => {
-        const hours = Math.floor(t);
-        const minutes = Math.round((t - hours) * 60);
-        return minutes < 30 ? hours : hours + 1;
-    };
-
-    const formatEndTime = (start: number, duration: number) => {
-        let end = start + duration;
-        const hours = Math.floor(end);
-        const minutes = Math.round((end - hours) * 60);
-        let rounded = minutes < 30 ? hours : hours + 1;
-        if (rounded <= start) rounded = start + 1; // upewniamy się, że end > start
-        return rounded;
-    };
-    // 📦 Szacowanie godzin dostaw
-    const startHour = 10; // start 10:00
+    const startHour = 10;
     let currentTime = startHour;
 
-    const deliveriesWithTime = orders.map((o) => {
+    const deliveriesWithTime = orders.map((o, index) => {
         const duration =
             o.type === "Transport"
                 ? 0.5
                 : o.type === "Transport + wniesienie"
                 ? 1
                 : 2;
+        const travelTime =
+            index === 0 ? 0 : (orders[index - 1].travelTime || 0) / 60;
+        const start = currentTime + travelTime;
+        const end = start + duration;
+        currentTime = end;
 
-        const startHour = formatStartTime(currentTime);
-        const endHour = formatEndTime(startHour, duration);
-        currentTime = endHour;
-
-        return {
-            ...o,
-            startTime: `${startHour}:00`,
-            endTime: `${endHour}:00`,
+        const fmt = (t: number) => {
+            const h = Math.floor(t);
+            const m = Math.round((t - h) * 60);
+            return `${String(h).padStart(2, "0")}:${String(m).padStart(
+                2,
+                "0"
+            )}`;
         };
+        return { ...o, startTime: fmt(start), endTime: fmt(end) };
     });
 
-    // Sortowanie po godzinie startu (rosnąco)
     deliveriesWithTime.sort((a, b) => {
         const [aH, aM] = a.startTime.split(":").map(Number);
         const [bH, bM] = b.startTime.split(":").map(Number);
         return aH * 60 + aM - (bH * 60 + bM);
     });
 
-
-
     return (
         <div className="min-h-screen bg-gray-50 p-4 md:p-6 flex flex-col md:flex-row gap-6">
-            {/* === MAIN LIST === */}
             <main className="flex-1 flex flex-col gap-4">
                 <div className="space-y-2">
                     <div className="font-semibold text-lg text-slate-800 flex items-center justify-between">
@@ -154,12 +148,13 @@ export default function AdminPage() {
                     </div>
                 </div>
 
-                {loading ? (
-                    <div className="space-y-4">
-                        {[1, 2, 3].map((i) => (
+                {/* 🌀 Pokazuj loading animację przy przeliczaniu */}
+                {loading || calculating ? (
+                    <div className="space-y-4 animate-pulse">
+                        {[1, 2, 3,4].map((i) => (
                             <div
                                 key={i}
-                                className="animate-pulse bg-white p-5 rounded-2xl shadow-sm"
+                                className="bg-white p-5 rounded-2xl shadow-sm"
                             >
                                 <div className="h-6 w-1/3 bg-gray-200 rounded mb-2" />
                                 <div className="h-4 w-1/2 bg-gray-200 rounded mb-2" />
@@ -183,12 +178,14 @@ export default function AdminPage() {
                         >
                             <div className="flex justify-between items-start">
                                 <div className="flex flex-col gap-1">
-                                    <div className="flex items-center gap-1">
-                                        <Clock />
-                                        <p className="text-2xl">
-                                            {o.startTime} - {o.endTime}
-                                        </p>
-                                    </div>
+                                    {o.travelTime != null && (
+                                        <div className="flex items-center gap-1">
+                                            <Clock />
+                                            <p className="text-2xl">
+                                                {o.startTime} - {o.endTime}
+                                            </p>
+                                        </div>
+                                    )}
                                     <h2 className="text-lg font-semibold text-gray-800">
                                         {o.client_name}
                                     </h2>
@@ -217,7 +214,6 @@ export default function AdminPage() {
                                         <Phone size={18} /> {o.phone_number}
                                     </a>
                                 </div>
-
                                 <button
                                     onClick={() => deleteOrder(o.id)}
                                     disabled={deleting === o.id}
@@ -230,34 +226,6 @@ export default function AdminPage() {
                                     )}
                                 </button>
                             </div>
-                            {o.photo_urls?.length ? (
-                                <div className="flex gap-2 mt-2 flex-wrap">
-                                    {" "}
-                                    {o.photo_urls.map((url, i) => (
-                                        <img
-                                            key={i}
-                                            src={url}
-                                            alt={`Zdjęcie ${i + 1}`}
-                                            onClick={() =>
-                                                setModal({
-                                                    photos: o.photo_urls!,
-                                                    index: i,
-                                                })
-                                            }
-                                            className="w-20 h-20 object-cover rounded-lg border cursor-pointer hover:opacity-80"
-                                        />
-                                    ))}
-                                </div>
-                            ) : null}
-                            {o.completed && (
-                                <p className="text-green-700 text-sm font-medium">
-                                    {" "}
-                                    ✅ Zrealizowano:{" "}
-                                    {new Date(
-                                        o.completed_at!
-                                    ).toLocaleTimeString()}{" "}
-                                </p>
-                            )}
                         </div>
                     ))
                 )}
@@ -357,7 +325,7 @@ export default function AdminPage() {
                         </button>
                     </form>
                 </div>
-                <div className="w-full bg-white p-6 shadow rounded-2xl">
+                <div className="w-full bg-white p-6 shadow rounded-2xl space-y-3">
                     <button
                         onClick={async () => {
                             try {
@@ -383,6 +351,7 @@ export default function AdminPage() {
                     </button>
                     <button
                         onClick={async () => {
+                            setCalculating(true); // 🌀 start loading
                             try {
                                 const res = await fetch("/api/travel-calc", {
                                     method: "POST",
@@ -393,7 +362,6 @@ export default function AdminPage() {
                                 });
                                 const data = await res.json();
                                 if (data.ok) {
-                                    alert("Trasy przeliczone i zapisane ✅");
                                     setOrders(data.updated);
                                 } else {
                                     alert("Błąd podczas przeliczania tras");
@@ -401,11 +369,25 @@ export default function AdminPage() {
                             } catch (err) {
                                 console.error(err);
                                 alert("Wystąpił błąd połączenia z API");
+                            } finally {
+                                setCalculating(false); // 🌀 koniec loading
                             }
                         }}
-                        className="bg-indigo-600 hover:bg-indigo-700 w-full text-white px-4 py-2 rounded-lg font-semibold transition"
+                        disabled={calculating}
+                        className={`w-full text-white px-4 py-2 cursor-pointer rounded-lg font-semibold transition flex items-center justify-center gap-2 ${
+                            calculating
+                                ? "bg-indigo-400 cursor-wait"
+                                : "bg-indigo-600 hover:bg-indigo-700"
+                        }`}
                     >
-                        🚗 Przelicz trasy
+                        {calculating ? (
+                            <>
+                                <Loader2 className="animate-spin" size={18} />
+                                Analizuję...
+                            </>
+                        ) : (
+                            <>🚗 Przelicz trasy</>
+                        )}
                     </button>
                 </div>
             </aside>
