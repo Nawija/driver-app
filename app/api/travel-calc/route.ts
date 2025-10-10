@@ -102,12 +102,12 @@ export async function POST(req: Request) {
 
             const durationHours =
                 o.type === "Transport"
-                    ? 0.5
+                    ? 0.1
                     : o.type === "Transport + wniesienie"
-                    ? 1
+                    ? 0.6
                     : 2;
 
-            const start = currentTime + travelMinutes / 60;
+            const start = currentTime + 1 + travelMinutes / 60;
             const end = start + durationHours;
             currentTime = end;
 

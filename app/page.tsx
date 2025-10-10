@@ -23,7 +23,10 @@ type Settings = {
 
 export default function HomePage() {
     const [orders, setOrders] = useState<Order[]>([]);
-    const [settings, setSettings] = useState<Settings>({ page_title: "", start_hour: 10 });
+    const [settings, setSettings] = useState<Settings>({
+        page_title: "",
+        start_hour: 10,
+    });
     const [uploading, setUploading] = useState<number | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [galleryImages, setGalleryImages] = useState<string[]>([]);
@@ -38,8 +41,14 @@ export default function HomePage() {
             data.sort((a, b) => {
                 if (!a.time_range) return 1;
                 if (!b.time_range) return -1;
-                const [aH, aM] = a.time_range.split(" - ")[0].split(":").map(Number);
-                const [bH, bM] = b.time_range.split(" - ")[0].split(":").map(Number);
+                const [aH, aM] = a.time_range
+                    .split(" - ")[0]
+                    .split(":")
+                    .map(Number);
+                const [bH, bM] = b.time_range
+                    .split(" - ")[0]
+                    .split(":")
+                    .map(Number);
                 return aH * 60 + aM - (bH * 60 + bM);
             });
 
@@ -81,7 +90,10 @@ export default function HomePage() {
             for (const file of Array.from(files)) {
                 const formData = new FormData();
                 formData.append("file", file);
-                const res = await fetch("/api/upload", { method: "POST", body: formData });
+                const res = await fetch("/api/upload", {
+                    method: "POST",
+                    body: formData,
+                });
                 const data = await res.json();
                 if (data?.ok && data.url) uploadedUrls.push(data.url);
             }
@@ -100,24 +112,30 @@ export default function HomePage() {
     }, []);
 
     return (
-        <div className="min-h-screen bg-gray-50 p-4">
+        <div className="min-h-screen p-5 mt-2">
             {/* HEADER */}
             <header className="max-w-4xl mx-auto mb-6 flex flex-col gap-2">
-                <h1 className="text-3xl font-bold text-gray-800">{settings.page_title || "Dostawy"}</h1>
-                <div className="flex flex-col sm:flex-row sm:items-center sm:gap-6 text-gray-600 text-sm">
+                <h1 className="text-3xl font-bold text-gray-800">
+                    {settings.page_title || "Dostawy"}
+                </h1>
+                <div className="flex flex-row items-center justify-between sm:gap-6 text-gray-600 font-medium text-lg">
                     <span>
                         Załadunek:{" "}
-                        <span className="font-medium text-gray-800">{settings.start_hour}:00</span>
+                        <span className="font-semibold text-gray-800">
+                            {settings.start_hour}:00
+                        </span>
                     </span>
                     <span>
                         Ilość dostaw:{" "}
-                        <span className="font-medium text-gray-800">({orders.length})</span>
+                        <span className="font-semibold text-gray-800">
+                            ({orders.length})
+                        </span>
                     </span>
                 </div>
             </header>
 
             {/* ORDERS LIST */}
-            <main className="max-w-4xl mx-auto flex flex-col gap-5">
+            <main className="max-w-4xl mx-auto flex flex-col gap-8">
                 {loading ? (
                     <div className="space-y-4">
                         {Array.from({ length: 4 }).map((_, i) => (
@@ -140,7 +158,7 @@ export default function HomePage() {
                         <div
                             key={o.id}
                             id={`order-${o.id}`}
-                            className={`scroll-m-4 rounded-2xl shadow p-5 flex flex-col gap-4 transition hover:shadow-md ${
+                            className={`scroll-m-4 rounded-xl shadow-lg p-5 flex flex-col gap-4 transition border border-gray-300 ${
                                 o.completed
                                     ? "border-l-4 border-green-400 bg-green-50/60"
                                     : "bg-white"
@@ -161,7 +179,9 @@ export default function HomePage() {
                                             : "bg-gray-200 text-gray-700"
                                     }`}
                                 >
-                                    {o.completed ? "Zrealizowano" : "Do realizacji"}
+                                    {o.completed
+                                        ? "Zrealizowano"
+                                        : "Do realizacji"}
                                 </div>
                             </div>
 
@@ -172,7 +192,9 @@ export default function HomePage() {
                                 {o.type}
                             </span>
                             {o.description && (
-                                <p className="text-gray-800 ml-1 mt-1">{o.description}</p>
+                                <p className="text-gray-800 ml-1 mt-1">
+                                    {o.description}
+                                </p>
                             )}
 
                             {/* CONTACT */}
@@ -237,7 +259,8 @@ export default function HomePage() {
                                         className="hidden"
                                         onChange={(e) => {
                                             const files = e.target.files;
-                                            if (files) handleFileUpload(o.id, files);
+                                            if (files)
+                                                handleFileUpload(o.id, files);
                                         }}
                                     />
                                 </label>
