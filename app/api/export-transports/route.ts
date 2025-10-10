@@ -1,4 +1,3 @@
-
 import JSZip from "jszip";
 import { sql } from "@vercel/postgres";
 import { NextResponse } from "next/server";
@@ -9,20 +8,23 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   try {
     const { rows: orders } = await sql`SELECT * FROM orders ORDER BY id ASC;`;
-
     if (!orders.length) {
       return NextResponse.json({ error: "Brak zleceń do eksportu." }, { status: 404 });
     }
 
+    // Pobierz ustawienia, aby wziąć tytuł dostaw
+    const { rows: settingsRows } = await sql`SELECT * FROM settings LIMIT 1;`;
+    const pageTitle = settingsRows[0]?.page_title || "Dostawy";
+
     const zip = new JSZip();
 
-    for (const [index, o] of orders.entries()) {
-      const folderName = `${String(index + 1).padStart(2, "0")}_${sanitize(
-        o.client_name
-      )}`;
+    // Tworzymy główny folder w ZIP
+    const mainFolder = zip.folder(sanitize(pageTitle));
+    if (!mainFolder) throw new Error("Nie udało się utworzyć głównego folderu w ZIP");
 
-      const folder = zip.folder(folderName);
-      if (!folder) continue;
+    for (const [index, o] of orders.entries()) {
+      // nazwa pliku: numer + klient
+      const fileName = `${String(index + 1).padStart(2, "0")}_${sanitize(o.client_name)}.txt`;
 
       const info = [
         `Klient: ${o.client_name}`,
@@ -33,20 +35,18 @@ export async function GET() {
         `Opis: ${o.description || "Brak"}`,
         `Zrealizowano: ${o.completed ? "Tak" : "Nie"}`,
         o.completed_at ? `Czas realizacji: ${new Date(o.completed_at).toLocaleString("pl-PL")}` : "",
-      ]
-        .filter(Boolean)
-        .join("\n");
+      ].filter(Boolean).join("\n");
 
-      folder.file("info.txt", info);
+      mainFolder.file(fileName, info);
 
-      // pobierz zdjęcia z blobów
+      // dodaj zdjęcia do tego samego folderu
       if (Array.isArray(o.photo_urls) && o.photo_urls.length > 0) {
         for (const [i, url] of o.photo_urls.entries()) {
           try {
             const res = await fetch(url);
             const blob = await res.blob();
             const arrayBuffer = await blob.arrayBuffer();
-            folder.file(`photo_${i + 1}.jpg`, arrayBuffer);
+            mainFolder.file(`photo_${index + 1}_${i + 1}.jpg`, arrayBuffer);
           } catch (err) {
             console.error("❌ Błąd przy pobieraniu zdjęcia:", url, err);
           }
@@ -54,15 +54,14 @@ export async function GET() {
       }
     }
 
-const zipArrayBuffer = await zip.generateAsync({ type: "arraybuffer" });
-
+    const zipArrayBuffer = await zip.generateAsync({ type: "arraybuffer" });
     const now = new Date().toISOString().split("T")[0];
 
     return new NextResponse(zipArrayBuffer, {
       status: 200,
       headers: {
         "Content-Type": "application/zip",
-        "Content-Disposition": `attachment; filename="transporty_${now}.zip"`,
+        "Content-Disposition": `attachment; filename="${sanitize(pageTitle)}_${now}.zip"`,
       },
     });
   } catch (err) {
