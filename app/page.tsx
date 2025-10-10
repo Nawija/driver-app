@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Phone, MapPin, Upload, Check, Clock } from "lucide-react";
+import { Phone, MapPin, Upload, Clock } from "lucide-react";
 import { SwiperModal } from "@/components/SwiperMd";
 
 type Order = {
@@ -16,8 +16,14 @@ type Order = {
     photo_urls?: string[];
 };
 
+type Settings = {
+    page_title: string;
+    start_hour: number;
+};
+
 export default function HomePage() {
     const [orders, setOrders] = useState<Order[]>([]);
+    const [settings, setSettings] = useState<Settings>({ page_title: "", start_hour: 10 });
     const [uploading, setUploading] = useState<number | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [galleryImages, setGalleryImages] = useState<string[]>([]);
@@ -29,18 +35,11 @@ export default function HomePage() {
             const res = await fetch("/api/orders");
             const data: Order[] = await res.json();
 
-            // Sortowanie po time_range
             data.sort((a, b) => {
                 if (!a.time_range) return 1;
                 if (!b.time_range) return -1;
-                const [aH, aM] = a.time_range
-                    .split(" - ")[0]
-                    .split(":")
-                    .map(Number);
-                const [bH, bM] = b.time_range
-                    .split(" - ")[0]
-                    .split(":")
-                    .map(Number);
+                const [aH, aM] = a.time_range.split(" - ")[0].split(":").map(Number);
+                const [bH, bM] = b.time_range.split(" - ")[0].split(":").map(Number);
                 return aH * 60 + aM - (bH * 60 + bM);
             });
 
@@ -49,6 +48,16 @@ export default function HomePage() {
             console.error(e);
         } finally {
             setLoading(false);
+        }
+    }
+
+    async function loadSettings() {
+        try {
+            const res = await fetch("/api/settings");
+            const data: Settings = await res.json();
+            setSettings(data);
+        } catch (e) {
+            console.error(e);
         }
     }
 
@@ -72,10 +81,7 @@ export default function HomePage() {
             for (const file of Array.from(files)) {
                 const formData = new FormData();
                 formData.append("file", file);
-                const res = await fetch("/api/upload", {
-                    method: "POST",
-                    body: formData,
-                });
+                const res = await fetch("/api/upload", { method: "POST", body: formData });
                 const data = await res.json();
                 if (data?.ok && data.url) uploadedUrls.push(data.url);
             }
@@ -89,20 +95,23 @@ export default function HomePage() {
     }
 
     useEffect(() => {
+        loadSettings();
         loadOrders();
     }, []);
 
     return (
         <div className="min-h-screen bg-gray-50 p-4">
             {/* HEADER */}
-            <header className="max-w-4xl mx-auto mb-6 flex flex-col gap-4">
-                <h1 className="text-3xl font-bold text-gray-800">
-                    Lista Dostaw
-                </h1>
-                <div className="text-gray-600 text-sm">
-                    Ilość dostaw:{" "}
-                    <span className="font-medium text-base text-gray-800">
-                        ({orders.length})
+            <header className="max-w-4xl mx-auto mb-6 flex flex-col gap-2">
+                <h1 className="text-3xl font-bold text-gray-800">{settings.page_title || "Dostawy"}</h1>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:gap-6 text-gray-600 text-sm">
+                    <span>
+                        Załadunek:{" "}
+                        <span className="font-medium text-gray-800">{settings.start_hour}:00</span>
+                    </span>
+                    <span>
+                        Ilość dostaw:{" "}
+                        <span className="font-medium text-gray-800">({orders.length})</span>
                     </span>
                 </div>
             </header>
@@ -141,8 +150,7 @@ export default function HomePage() {
                             <div className="flex items-center justify-between">
                                 {o.time_range && (
                                     <div className="flex items-center gap-2 text-2xl text-gray-700">
-                                        <Clock size={26} />
-                                        {o.time_range}
+                                        <Clock size={26} /> {o.time_range}
                                     </div>
                                 )}
 
@@ -153,9 +161,7 @@ export default function HomePage() {
                                             : "bg-gray-200 text-gray-700"
                                     }`}
                                 >
-                                    {o.completed
-                                        ? `Zrealizowano`
-                                        : "Do realizacji"}
+                                    {o.completed ? "Zrealizowano" : "Do realizacji"}
                                 </div>
                             </div>
 
@@ -166,9 +172,7 @@ export default function HomePage() {
                                 {o.type}
                             </span>
                             {o.description && (
-                                <p className="text-gray-800 ml-1 mt-1">
-                                    {o.description}
-                                </p>
+                                <p className="text-gray-800 ml-1 mt-1">{o.description}</p>
                             )}
 
                             {/* CONTACT */}
@@ -233,8 +237,7 @@ export default function HomePage() {
                                         className="hidden"
                                         onChange={(e) => {
                                             const files = e.target.files;
-                                            if (files)
-                                                handleFileUpload(o.id, files);
+                                            if (files) handleFileUpload(o.id, files);
                                         }}
                                     />
                                 </label>
