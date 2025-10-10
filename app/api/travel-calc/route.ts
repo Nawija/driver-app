@@ -34,7 +34,8 @@ function floorHalfHour(t: number) {
 function ceilHalfHour(t: number) {
     const h = Math.floor(t);
     const m = Math.round((t - h) * 60);
-    if (m === 0 || m === 30) return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+    if (m === 0 || m === 30)
+        return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
     if (m < 30) return `${String(h).padStart(2, "0")}:30`;
     return `${String(h + 1).padStart(2, "0")}:00`;
 }
@@ -50,7 +51,9 @@ function fixTimeRange(start: string, end: string) {
             newH += 1;
             newM -= 60;
         }
-        return `${start} - ${String(newH).padStart(2, "0")}:${String(newM).padStart(2, "0")}`;
+        return `${start} - ${String(newH).padStart(2, "0")}:${String(
+            newM
+        ).padStart(2, "0")}`;
     }
     return `${start} - ${end}`;
 }
@@ -84,7 +87,9 @@ export async function POST(req: Request) {
         );
         const matrixData = await matrixRes.json();
 
-        const startHour = 10;
+        // Pobierz start_hour z tabeli settings
+        const settings = await sql`SELECT start_hour FROM settings LIMIT 1;`;
+        const startHour = settings.rows[0]?.start_hour ?? 10;
         let currentTime = startHour;
         const updatedOrders = [];
 
@@ -92,7 +97,8 @@ export async function POST(req: Request) {
             const o = orders[i];
             const travelSeconds = i === 0 ? 0 : matrixData.durations[i - 1][i];
             const travelMinutes = travelSeconds / 60;
-            const distanceKm = i === 0 ? 0 : matrixData.distances[i - 1][i] / 1000;
+            const distanceKm =
+                i === 0 ? 0 : matrixData.distances[i - 1][i] / 1000;
 
             const durationHours =
                 o.type === "Transport"

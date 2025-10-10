@@ -37,6 +37,11 @@ export default function AdminPage() {
     });
     const [adding, setAdding] = useState(false);
     const [deleting, setDeleting] = useState<number | null>(null);
+    const [settings, setSettings] = useState({
+        start_hour: 10,
+        page_title: "",
+    });
+    const [savingSettings, setSavingSettings] = useState(false);
 
     const [modal, setModal] = useState<{
         photos: string[];
@@ -57,6 +62,27 @@ export default function AdminPage() {
         } finally {
             setLoading(false);
         }
+    }
+
+    // Ładowanie ustawień przy starcie
+    useEffect(() => {
+        (async () => {
+            const res = await fetch("/api/settings");
+            const data = await res.json();
+            setSettings(data);
+        })();
+    }, []);
+
+    // Zapis ustawień
+    async function saveSettings() {
+        setSavingSettings(true);
+        await fetch("/api/settings", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(settings),
+        });
+        setSavingSettings(false);
+        alert("Zapisano ustawienia ✅");
     }
 
     async function handleAdd(e: React.FormEvent) {
@@ -101,9 +127,6 @@ export default function AdminPage() {
         loadOrders();
     }, []);
 
-    const startHour = 10;
-    let currentTime = startHour;
-
     const deliveriesWithTime = orders.map((o, index) => {
         const duration =
             o.type === "Transport"
@@ -113,9 +136,8 @@ export default function AdminPage() {
                 : 2;
         const travelTime =
             index === 0 ? 0 : (orders[index - 1].travelTime || 0) / 60;
-        const start = currentTime + travelTime;
+        const start = travelTime;
         const end = start + duration;
-        currentTime = end;
 
         const fmt = (t: number) => {
             const h = Math.floor(t);
@@ -135,27 +157,72 @@ export default function AdminPage() {
     });
 
     return (
-        <div className="min-h-screen bg-gray-50 p-4 md:p-6 flex flex-col md:flex-row gap-6">
+        <div className="min-h-screen p-4 md:p-6 flex flex-col md:flex-row gap-6">
             <main className="flex-1 flex flex-col gap-4">
-                <div className="space-y-2">
-                    <div className="font-semibold text-lg text-slate-800 flex items-center justify-between">
-                        <span>
-                            Ilość dostaw:{" "}
-                            <span className="font-medium text-xl text-gray-800">
-                                ({orders.length})
-                            </span>
-                        </span>
-                        
+                <div className="w-full bg-white border border-gray-200 p-6 shadow rounded-xl flex items-end justify-center space-x-4">
+                    <div className="w-full">
+                        <p className="block mb-1 font-semibold">
+                            Godzina startu dostaw
+                        </p>
+                        <input
+                            type="number"
+                            min={5}
+                            max={20}
+                            step={0.5}
+                            value={settings.start_hour}
+                            onChange={(e) =>
+                                setSettings({
+                                    ...settings,
+                                    start_hour: parseFloat(e.target.value),
+                                })
+                            }
+                            className="border border-gray-300 rounded-lg px-3 py-2 w-full"
+                        />
                     </div>
+
+                    <div className="w-full">
+                        <label className="block mb-1 font-semibold">
+                            Tytuł dostaw
+                        </label>
+                        <input
+                            type="text"
+                            value={settings.page_title}
+                            onChange={(e) =>
+                                setSettings({
+                                    ...settings,
+                                    page_title: e.target.value,
+                                })
+                            }
+                            className="border border-gray-300 rounded-lg px-3 py-2 w-full"
+                        />
+                    </div>
+
+                    <button
+                        onClick={saveSettings}
+                        disabled={savingSettings}
+                        className="bg-blue-600 hover:bg-blue-700 text-white w-max text-nowrap py-2 px-4 rounded-lg font-semibold transition"
+                    >
+                        {savingSettings
+                            ? "Zapisywanie..."
+                            : "Zapisz ustawienia"}
+                    </button>
                 </div>
 
-                {/* 🌀 Pokazuj loading animację przy przeliczaniu */}
+                <div className="font-semibold text-lg text-slate-800 flex items-center justify-between">
+                    <span>
+                        Ilość dostaw:{" "}
+                        <span className="font-medium text-xl text-gray-800">
+                            ({orders.length})
+                        </span>
+                    </span>
+                </div>
+
                 {loading || calculating ? (
                     <div className="space-y-4 animate-pulse">
                         {[1, 2, 3, 4].map((i) => (
                             <div
                                 key={i}
-                                className="bg-white p-5 rounded-2xl shadow-sm"
+                                className="bg-white border border-gray-200 p-5 rounded-2xl shadow-sm"
                             >
                                 <div className="h-6 w-1/3 bg-gray-200 rounded mb-2" />
                                 <div className="h-4 w-1/2 bg-gray-200 rounded mb-2" />
@@ -171,7 +238,7 @@ export default function AdminPage() {
                     orders.map((o) => (
                         <div
                             key={o.id}
-                            className={`bg-white rounded-2xl shadow p-5 flex flex-col gap-3 transition hover:shadow-md ${
+                            className={`bg-white border border-gray-200 rounded-2xl shadow p-5 flex flex-col gap-3 transition hover:shadow-md ${
                                 o.completed
                                     ? "border-l-4 border-green-400 bg-green-50"
                                     : ""
@@ -218,7 +285,7 @@ export default function AdminPage() {
                                 <button
                                     onClick={() => deleteOrder(o.id)}
                                     disabled={deleting === o.id}
-                                    className="bg-red-500 text-white px-3 py-1.5 rounded-xl hover:bg-red-600 text-sm font-medium transition"
+                                    className="bg-red-500 text-white p-2 rounded-xl cursor-pointer hover:bg-red-600 text-sm font-medium transition"
                                 >
                                     {deleting === o.id ? (
                                         "..."
@@ -234,7 +301,7 @@ export default function AdminPage() {
 
             {/* === SIDEBAR FORM === */}
             <aside className="md:w-[360px] w-full h-fit sticky top-6 self-start space-y-6">
-                <div className="w-full bg-white p-6 shadow rounded-2xl">
+                <div className="w-full bg-white border border-gray-200 p-6 shadow rounded-2xl">
                     <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2 mb-3">
                         <PlusCircle className="text-blue-600" /> Dodaj zlecenie
                     </h2>
@@ -326,7 +393,8 @@ export default function AdminPage() {
                         </button>
                     </form>
                 </div>
-                <div className="w-full bg-white p-6 shadow rounded-2xl space-y-3">
+
+                <div className="w-full bg-white border border-gray-200 p-6 shadow rounded-2xl space-y-3">
                     <button
                         onClick={async () => {
                             try {
@@ -348,7 +416,7 @@ export default function AdminPage() {
                         }}
                         className="bg-emerald-600 hover:bg-emerald-700 cursor-pointer w-full text-white px-4 py-2 rounded-lg font-semibold transition"
                     >
-                        📦 Ściągnij transporty
+                        Pobierz transporty
                     </button>
                     <button
                         onClick={async () => {
@@ -377,8 +445,8 @@ export default function AdminPage() {
                         disabled={calculating}
                         className={`w-full text-white px-4 py-2 cursor-pointer rounded-lg font-semibold transition flex items-center justify-center gap-2 ${
                             calculating
-                                ? "bg-indigo-400 cursor-wait"
-                                : "bg-indigo-600 hover:bg-indigo-700"
+                                ? "bg-pink-400 cursor-wait"
+                                : "bg-pink-600 hover:bg-pink-700"
                         }`}
                     >
                         {calculating ? (
@@ -387,7 +455,7 @@ export default function AdminPage() {
                                 Analizuję...
                             </>
                         ) : (
-                            <>🚗 Przelicz trasy</>
+                            <>Rozpisz przedziały dostaw</>
                         )}
                     </button>
                 </div>
