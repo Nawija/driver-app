@@ -12,9 +12,9 @@ type Order = {
     address: string;
     completed: boolean;
     completed_at?: string;
+    time_range?: string;
     photo_urls?: string[];
 };
-
 
 export default function HomePage() {
     const [orders, setOrders] = useState<Order[]>([]);
@@ -28,7 +28,22 @@ export default function HomePage() {
         try {
             const res = await fetch("/api/orders");
             const data: Order[] = await res.json();
-         
+
+            // Sortowanie po time_range
+            data.sort((a, b) => {
+                if (!a.time_range) return 1;
+                if (!b.time_range) return -1;
+                const [aH, aM] = a.time_range
+                    .split(" - ")[0]
+                    .split(":")
+                    .map(Number);
+                const [bH, bM] = b.time_range
+                    .split(" - ")[0]
+                    .split(":")
+                    .map(Number);
+                return aH * 60 + aM - (bH * 60 + bM);
+            });
+
             setOrders(data);
         } catch (e) {
             console.error(e);
@@ -124,9 +139,9 @@ export default function HomePage() {
                         >
                             {/* INFO */}
                             <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2 text-gray-700">
+                                <div className="flex items-center gap-2 text-2xl text-gray-700">
                                     <Clock size={26} />
-                                    
+                                    {o.time_range}
                                 </div>
                                 <div
                                     className={`text-sm font-medium px-3 py-1.5 rounded-xl ${
