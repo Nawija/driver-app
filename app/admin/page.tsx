@@ -3,11 +3,6 @@ import { useEffect, useState } from "react";
 import { Phone, MapPin, Trash2, PlusCircle, Clock } from "lucide-react";
 import { SwiperModal } from "@/components/SwiperMd";
 
-type OrderWithTime = Order & {
-    startTime: string;
-    endTime: string;
-};
-
 type Order = {
     id: number;
     client_name: string;
@@ -35,7 +30,7 @@ export default function AdminPage() {
     });
     const [adding, setAdding] = useState(false);
     const [deleting, setDeleting] = useState<number | null>(null);
-    const [travelCalculated, setTravelCalculated] = useState(false);
+
     const [modal, setModal] = useState<{
         photos: string[];
         index: number;
@@ -73,7 +68,6 @@ export default function AdminPage() {
                 type: "Transport",
                 address: "",
             });
-            setTravelCalculated(false);
             loadOrders();
         } catch (e) {
             console.error(e);
@@ -143,62 +137,7 @@ export default function AdminPage() {
         return aH * 60 + aM - (bH * 60 + bM);
     });
 
-    async function calculateTravelTimes(orders: Order[]) {
-        const updated = [];
 
-        for (let i = 0; i < orders.length - 1; i++) {
-            const originAddress = orders[i].address;
-            const destinationAddress = orders[i + 1].address;
-
-            try {
-                // Geokodowanie
-                const [originGeo, destinationGeo] = await Promise.all([
-                    fetch("/api/geocode", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ address: originAddress }),
-                    }).then((r) => r.json()),
-
-                    fetch("/api/geocode", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ address: destinationAddress }),
-                    }).then((r) => r.json()),
-                ]);
-
-                // Obliczanie trasy
-                const routeRes = await fetch("/api/travel-time", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        origins: originGeo,
-                        destinations: destinationGeo,
-                    }),
-                });
-
-                const routeData = await routeRes.json();
-                const travelMinutes = routeData.duration / 60; // sekundy → minuty
-
-                updated.push({ ...orders[i], travelTime: travelMinutes });
-            } catch (err) {
-                console.error("Błąd przeliczania trasy:", err);
-                updated.push({ ...orders[i], travelTime: 20 }); // fallback 20 min
-            }
-        }
-
-        updated.push({ ...orders[orders.length - 1], travelTime: 0 });
-        return updated;
-    }
-
-    useEffect(() => {
-        (async () => {
-            if (orders.length > 1 && !travelCalculated) {
-                const withTravelTimes = await calculateTravelTimes(orders);
-                setOrders(withTravelTimes);
-                setTravelCalculated(true); // oznacza, że travelTime już policzone
-            }
-        })();
-    }, [orders, travelCalculated]);
 
     return (
         <div className="min-h-screen bg-gray-50 p-4 md:p-6 flex flex-col md:flex-row gap-6">
@@ -442,10 +381,35 @@ export default function AdminPage() {
                     >
                         📦 Ściągnij transporty
                     </button>
+                    <button
+                        onClick={async () => {
+                            try {
+                                const res = await fetch("/api/travel-calc", {
+                                    method: "POST",
+                                    headers: {
+                                        "Content-Type": "application/json",
+                                    },
+                                    body: JSON.stringify({ orders }),
+                                });
+                                const data = await res.json();
+                                if (data.ok) {
+                                    alert("Trasy przeliczone i zapisane ✅");
+                                    setOrders(data.updated);
+                                } else {
+                                    alert("Błąd podczas przeliczania tras");
+                                }
+                            } catch (err) {
+                                console.error(err);
+                                alert("Wystąpił błąd połączenia z API");
+                            }
+                        }}
+                        className="bg-indigo-600 hover:bg-indigo-700 w-full text-white px-4 py-2 rounded-lg font-semibold transition"
+                    >
+                        🚗 Przelicz trasy
+                    </button>
                 </div>
             </aside>
 
-            {/* === SWIPE MODAL === */}
             {modal && (
                 <SwiperModal
                     images={modal.photos}
