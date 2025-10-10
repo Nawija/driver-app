@@ -4,6 +4,12 @@ import { initDb } from "@/lib/db";
 
 const ORS_API_KEY = process.env.ORS_API_KEY!;
 
+interface Order {
+    id: number;
+    address: string;
+    type: string;
+}
+
 async function getCoords(address: string) {
     const res = await fetch(
         `https://api.openrouteservice.org/geocode/search?api_key=${ORS_API_KEY}&text=${encodeURIComponent(
@@ -58,7 +64,7 @@ export async function POST(req: Request) {
 
         // 🔹 Zamień adresy na współrzędne
         const coords: number[][] = await Promise.all(
-            orders.map((o: any) => getCoords(o.address))
+            orders.map((o: Order) => getCoords(o.address))
         );
 
         // 🔹 Pobierz macierz czasów i odległości ORS
