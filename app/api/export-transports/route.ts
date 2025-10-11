@@ -12,19 +12,16 @@ export async function GET() {
       return NextResponse.json({ error: "Brak zleceń do eksportu." }, { status: 404 });
     }
 
-    // Pobierz ustawienia, aby wziąć tytuł dostaw
-    const { rows: settingsRows } = await sql`SELECT * FROM settings LIMIT 1;`;
-    const pageTitle = settingsRows[0]?.page_title || "Dostawy";
 
     const zip = new JSZip();
 
-    // Tworzymy główny folder w ZIP
-    const mainFolder = zip.folder(sanitize(pageTitle));
-    if (!mainFolder) throw new Error("Nie udało się utworzyć głównego folderu w ZIP");
-
+    
     for (const [index, o] of orders.entries()) {
       // nazwa pliku: numer + klient
       const fileName = `${String(index + 1).padStart(2, "0")}_${sanitize(o.client_name)}.txt`;
+      // Tworzymy główny folder w ZIP
+      const mainFolder = zip.folder(sanitize(fileName));
+      if (!mainFolder) throw new Error("Nie udało się utworzyć głównego folderu w ZIP");
 
       const info = [
         `Klient: ${o.client_name}`,
@@ -61,7 +58,7 @@ export async function GET() {
       status: 200,
       headers: {
         "Content-Type": "application/zip",
-        "Content-Disposition": `attachment; filename="${sanitize(pageTitle)}_${now}.zip"`,
+        "Content-Disposition": `attachment; filename="${sanitize("Dostawy")}_${now}.zip"`,
       },
     });
   } catch (err) {

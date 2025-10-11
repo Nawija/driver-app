@@ -322,7 +322,8 @@ export default function AdminPage() {
                                     {/* ✅ Data realizacji */}
                                     {o.completed && o.completed_at && (
                                         <p className="text-green-800 bg-green-100 py-1.5 px-4 rounded-2xl font-medium text-sm mt-2 flex items-center gap-1">
-                                            <CheckCircle size={20} /> Zrealizowano:{" "}
+                                            <CheckCircle size={20} />{" "}
+                                            Zrealizowano:{" "}
                                             {new Date(
                                                 o.completed_at
                                             ).toLocaleString("pl-PL", {
@@ -448,7 +449,9 @@ export default function AdminPage() {
                                 const url = window.URL.createObjectURL(blob);
                                 const a = document.createElement("a");
                                 a.href = url;
-                                a.download = `transporty-${orders.length}x.zip`;
+                                a.download = `${
+                                    settings.page_title || "Dostawy"
+                                }.zip`;
                                 a.click();
                                 window.URL.revokeObjectURL(url);
                             } catch (err) {
