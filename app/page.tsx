@@ -2,6 +2,12 @@
 import { useEffect, useState } from "react";
 import { Phone, MapPin, Upload, Clock } from "lucide-react";
 import { SwiperModal } from "@/components/SwiperMd";
+import {
+    Accordion,
+    AccordionContent,
+    AccordionItem,
+    AccordionTrigger,
+} from "@/components/ui/accordion";
 
 type Order = {
     id: number;
@@ -154,136 +160,95 @@ export default function HomePage() {
                         Brak zleceń do wyświetlenia.
                     </div>
                 ) : (
-                    orders.map((o) => (
-                        <div
-                            key={o.id}
-                            id={`order-${o.id}`}
-                            className={`scroll-m-4 rounded-xl shadow-lg p-5 flex flex-col gap-4 transition border border-gray-300 ${
-                                o.completed
-                                    ? "border-l-4 border-green-400 bg-green-50/60"
-                                    : "bg-white"
-                            }`}
-                        >
-                            {/* INFO */}
-                            <div className="flex items-center justify-between">
-                                {o.time_range && (
-                                    <div className="flex items-center gap-2 text-2xl text-gray-700">
-                                        <Clock size={26} /> {o.time_range}
+                    <Accordion
+                        type="single"
+                        collapsible
+                        className="w-full flex flex-col gap-4"
+                    >
+                        {orders.map((o) => (
+                            <AccordionItem
+                                key={o.id}
+                                value={`order-${o.id}`}
+                                className={`border-2 rounded-xl shadow-sm bg-white ${
+                                    o.completed ? "border-l-green-400 border-l-2" : "border-white"
+                                }`}
+                            >
+                                <AccordionTrigger className="flex justify-between items-center p-4 text-lg font-medium">
+                                    <div className="flex items-center gap-2">
+                                        <Clock size={24} />{" "}
+                                        {o.time_range || "Brak godziny"}
                                     </div>
-                                )}
-
-                                <div
-                                    className={`text-sm font-medium px-3 py-1.5 rounded-xl ${
-                                        o.completed
-                                            ? "bg-green-100 text-green-700"
-                                            : "bg-gray-200 text-gray-700"
-                                    }`}
-                                >
-                                    {o.completed
-                                        ? "Zrealizowano"
-                                        : "Do realizacji"}
-                                </div>
-                            </div>
-
-                            <h2 className="text-xl font-semibold text-gray-800">
-                                {o.client_name}
-                            </h2>
-                            <span className="inline-block bg-gray-100 text-gray-700 px-3 py-1 rounded-full font-medium">
-                                {o.type}
-                            </span>
-                            {o.description && (
-                                <p className="text-gray-800 ml-1 mt-1">
-                                    {o.description}
-                                </p>
-                            )}
-
-                            {/* CONTACT */}
-                            <div className="flex flex-col gap-2">
-                                <a
-                                    href={`tel:${o.phone_number}`}
-                                    className="flex items-center gap-2 bg-green-50 rounded-xl px-4 py-2 font-medium hover:bg-green-100 transition-colors"
-                                >
-                                    <Phone size={20} /> {o.phone_number}
-                                </a>
-                                <a
-                                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                                        o.address
-                                    )}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="flex items-center gap-2 bg-blue-50 rounded-xl px-4 py-2 text-gray-700 font-medium hover:bg-blue-100 transition-colors"
-                                >
-                                    <MapPin size={20} /> {o.address}
-                                </a>
-                            </div>
-
-                            {/* PHOTOS */}
-                            {o.photo_urls?.length && (
-                                <div className="flex gap-2 mt-2 overflow-x-auto py-1">
-                                    {o.photo_urls.map((url, j) => (
-                                        <button
-                                            key={j}
-                                            onClick={() => {
-                                                setGalleryImages(o.photo_urls!);
-                                                setGalleryIndex(j);
-                                            }}
-                                            className="w-20 h-20 rounded-xl overflow-hidden shadow-sm flex-shrink-0 cursor-pointer"
-                                        >
-                                            <img
-                                                src={url}
-                                                alt={`Zdjęcie ${j + 1}`}
-                                                className="w-full h-full object-cover"
-                                            />
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
-
-                            {/* ACTIONS */}
-                            <div className="flex flex-col gap-3 mt-2">
-                                <label className="flex items-center justify-center gap-2 px-4 py-3 bg-gray-800 text-white font-semibold rounded-xl hover:bg-gray-700 transition cursor-pointer">
-                                    {uploading === o.id ? (
-                                        <span className="loader-border w-5 h-5 border-2 border-white rounded-full border-t-transparent animate-spin" />
-                                    ) : (
-                                        <>
-                                            <Upload size={20} />{" "}
-                                            {o.photo_urls?.length
-                                                ? "Dodaj kolejne zdjęcie"
-                                                : "Dodaj zdjęcie"}
-                                        </>
-                                    )}
-                                    <input
-                                        type="file"
-                                        accept="image/*"
-                                        multiple
-                                        className="hidden"
-                                        onChange={(e) => {
-                                            const files = e.target.files;
-                                            if (files)
-                                                handleFileUpload(o.id, files);
-                                        }}
-                                    />
-                                </label>
-
-                                {!o.completed && (
-                                    <button
-                                        onClick={() => {
-                                            if (
-                                                !confirm(
-                                                    "Oznaczyć jako zrealizowane bez zdjęć?"
-                                                )
-                                            )
-                                                return;
-                                            markCompleted(o.id);
-                                        }}
-                                        className="px-4 py-2 border rounded-xl font-semibold text-gray-700 hover:bg-gray-100 transition"
+                                    <span
+                                        className={`px-3 py-1 rounded-xl text-sm font-medium ${
+                                            o.completed
+                                                ? "bg-green-100 text-green-700"
+                                                : "bg-gray-200 text-gray-700"
+                                        }`}
                                     >
-                                        Oznacz jako zrealizowane
-                                    </button>
-                                )}
-                            </div>
-                        </div>
-                    ))
+                                        {o.completed
+                                            ? "Zrealizowano"
+                                            : "Do realizacji"}
+                                    </span>
+                                </AccordionTrigger>
+
+                                <AccordionContent className="p-4 border-t border-gray-200 flex flex-col gap-4">
+                                    <h2 className="text-xl font-semibold text-gray-800">
+                                        {o.client_name}
+                                    </h2>
+                                    <span className="inline-block bg-gray-100 text-gray-700 px-3 py-1 rounded-full font-medium">
+                                        {o.type}
+                                    </span>
+                                    {o.description && (
+                                        <p className="text-gray-800">
+                                            {o.description}
+                                        </p>
+                                    )}
+
+                                    <div className="flex flex-col gap-2">
+                                        <a
+                                            href={`tel:${o.phone_number}`}
+                                            className="flex items-center gap-2 bg-green-50 rounded-xl px-4 py-2 font-medium hover:bg-green-100 transition-colors"
+                                        >
+                                            <Phone size={20} /> {o.phone_number}
+                                        </a>
+                                        <a
+                                            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                                                o.address
+                                            )}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex items-center gap-2 bg-blue-50 rounded-xl px-4 py-2 text-gray-700 font-medium hover:bg-blue-100 transition-colors"
+                                        >
+                                            <MapPin size={20} /> {o.address}
+                                        </a>
+                                    </div>
+
+                                    {o.photo_urls?.length && (
+                                        <div className="flex gap-2 mt-2 overflow-x-auto py-1">
+                                            {o.photo_urls.map((url, j) => (
+                                                <button
+                                                    key={j}
+                                                    onClick={() => {
+                                                        setGalleryImages(
+                                                            o.photo_urls!
+                                                        );
+                                                        setGalleryIndex(j);
+                                                    }}
+                                                    className="w-20 h-20 rounded-xl overflow-hidden shadow-sm flex-shrink-0 cursor-pointer"
+                                                >
+                                                    <img
+                                                        src={url}
+                                                        alt={`Zdjęcie ${j + 1}`}
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                </AccordionContent>
+                            </AccordionItem>
+                        ))}
+                    </Accordion>
                 )}
             </main>
 

@@ -11,6 +11,13 @@ import {
 } from "lucide-react"; // 🌀 Dodano Loader2
 import { SwiperModal } from "@/components/SwiperMd";
 
+import {
+    Accordion,
+    AccordionItem,
+    AccordionTrigger,
+    AccordionContent,
+} from "@/components/ui/accordion";
+
 type Order = {
     id: number;
     client_name: string;
@@ -237,55 +244,72 @@ export default function AdminPage() {
                         Brak zleceń.
                     </div>
                 ) : (
-                    orders.map((o) => (
-                        <div
-                            key={o.id}
-                            className={`bg-white border border-gray-200 rounded-2xl shadow p-5 flex flex-col gap-3 transition hover:shadow-md ${
-                                o.completed
-                                    ? "border-l-4 border-green-400 bg-green-50"
-                                    : ""
-                            }`}
-                        >
-                            <div className="flex justify-between items-start">
-                                <div className="flex flex-col gap-1">
-                                    {o.time_range && (
-                                        <div className="flex items-center gap-1">
-                                            <Clock />
-                                            <p className="text-2xl">
-                                                {o.time_range}
-                                            </p>
-                                        </div>
-                                    )}
-                                    <h2 className="text-lg font-semibold text-gray-800">
+                    <Accordion
+                        type="single"
+                        collapsible
+                        className="flex flex-col gap-4 w-full"
+                    >
+                        {orders.map((o) => (
+                            <AccordionItem
+                                key={o.id}
+                                value={`order-${o.id}`}
+                                className={`border-2 rounded-xl shadow-sm border-gray-200 bg-white ${
+                                    o.completed
+                                        ? "border-l-green-400 border-l-2"
+                                        : "border-white"
+                                }`}
+                            >
+                                <AccordionTrigger className="flex justify-between items-center p-4 text-lg font-medium">
+                                    <div className="flex items-center gap-2">
+                                        <Clock size={20} />{" "}
+                                        {o.time_range || "Brak godziny"}
+                                    </div>
+                                    <span
+                                        className={`px-3 py-1 rounded-xl text-sm font-medium ${
+                                            o.completed
+                                                ? "bg-green-100 text-green-700"
+                                                : "bg-gray-200 text-gray-700"
+                                        }`}
+                                    >
+                                        {o.completed
+                                            ? "Zrealizowano"
+                                            : "Do realizacji"}
+                                    </span>
+                                </AccordionTrigger>
+
+                                <AccordionContent className="p-4 flex flex-col gap-3 border-t border-gray-200">
+                                    <h2 className="text-lg font-semibold">
                                         {o.client_name}
                                     </h2>
                                     <span className="text-sm text-gray-500">
                                         {o.type}
                                     </span>
                                     {o.description && (
-                                        <p className="text-gray-600 text-sm mt-1">
+                                        <p className="text-gray-600">
                                             {o.description}
                                         </p>
                                     )}
-                                    <a
-                                        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                                            o.address
-                                        )}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="flex items-center gap-2 text-gray-700 hover:text-blue-600 mt-1"
-                                    >
-                                        <MapPin size={18} /> {o.address}
-                                    </a>
+
                                     <a
                                         href={`tel:${o.phone_number}`}
                                         className="flex items-center gap-2 text-gray-700 hover:text-blue-600"
                                     >
                                         <Phone size={18} /> {o.phone_number}
                                     </a>
-                                    {/* === DODANE: zdjęcia realizacji === */}
-                                    {o.photo_urls?.length ? (
-                                        <div className="flex gap-2 mt-2 overflow-x-auto w-full lg:flex-wrap py-1">
+
+                                    <a
+                                        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                                            o.address
+                                        )}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center gap-2 text-gray-700 hover:text-blue-600"
+                                    >
+                                        <MapPin size={18} /> {o.address}
+                                    </a>
+
+                                    {o.photo_urls?.length && (
+                                        <div className="flex gap-2 mt-2 overflow-x-auto w-full py-1">
                                             {o.photo_urls.map((url, j) => (
                                                 <button
                                                     key={j}
@@ -305,41 +329,11 @@ export default function AdminPage() {
                                                 </button>
                                             ))}
                                         </div>
-                                    ) : null}
-                                </div>
-
-                                <div className="flex flex-col h-full items-end justify-between">
-                                    <button
-                                        onClick={() => deleteOrder(o.id)}
-                                        disabled={deleting === o.id}
-                                        className="bg-red-500 text-white p-2 rounded-xl cursor-pointer hover:bg-red-600 text-sm font-medium transition"
-                                    >
-                                        {deleting === o.id ? (
-                                            "..."
-                                        ) : (
-                                            <Trash2 size={18} />
-                                        )}
-                                    </button>
-                                    {/* ✅ Data realizacji */}
-                                    {o.completed && o.completed_at && (
-                                        <p className="text-green-800 bg-green-100 py-1.5 px-4 rounded-2xl font-medium text-sm mt-2 flex items-center gap-1 lg:w-max">
-                                            <CheckCircle size={20} />{" "}
-                                            Zrealizowano:{" "}
-                                            {new Date(
-                                                o.completed_at
-                                            ).toLocaleString("pl-PL", {
-                                                day: "2-digit",
-                                                month: "2-digit",
-                                                year: "numeric",
-                                                hour: "2-digit",
-                                                minute: "2-digit",
-                                            })}
-                                        </p>
                                     )}
-                                </div>
-                            </div>
-                        </div>
-                    ))
+                                </AccordionContent>
+                            </AccordionItem>
+                        ))}
+                    </Accordion>
                 )}
             </main>
 
