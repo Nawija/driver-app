@@ -10,18 +10,33 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  await initDb();
-  const { clientName, phoneNumber, description, type, address } = await req.json();
+    await initDb();
+    const { clientName, phoneNumber, description, type, address } =
+        await req.json();
 
-  if (!clientName  || !type || !address || !phoneNumber) {
-    return NextResponse.json({ ok: false, error: "Missing fields" });
-  }
+    if (!clientName || !type || !address || !phoneNumber) {
+        return NextResponse.json({ ok: false, error: "Missing fields" });
+    }
 
-  await sql`
+    await sql`
     INSERT INTO orders (client_name, phone_number, description, type, address)
     VALUES (${clientName}, ${phoneNumber}, ${description}, ${type}, ${address});
   `;
 
-  return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true });
 }
 
+// 🟥 Usuwanie wszystkich zleceń
+export async function DELETE() {
+    await initDb();
+    try {
+        await sql`DELETE FROM orders;`;
+        return NextResponse.json({ ok: true });
+    } catch (err) {
+        console.error(err);
+        return NextResponse.json({
+            ok: false,
+            error: "Błąd przy usuwaniu wszystkich zleceń",
+        });
+    }
+}

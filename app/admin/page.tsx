@@ -165,6 +165,11 @@ export default function AdminPage() {
         return aH * 60 + aM - (bH * 60 + bM);
     });
 
+    const totalDistance = orders.reduce(
+        (acc, o) => acc + (o.travelTime || 0),
+        0
+    );
+
     return (
         <div className="min-h-screen p-4 md:p-6 flex flex-col md:flex-row gap-6 max-w-screen-2xl mx-auto">
             <main className="flex-1 flex flex-col gap-4">
@@ -217,25 +222,68 @@ export default function AdminPage() {
                     </button>
                 </div>
 
-                <div className="font-semibold text-lg text-slate-800 flex items-center justify-between">
+                <div className="font-semibold text-lg text-slate-800 flex justify-between items-center mt-4">
                     <span>
                         Ilość dostaw:{" "}
-                        <span className="font-medium text-xl text-gray-800">
+                        <span className="font-medium text-xl text-yellow-700">
                             ({orders.length})
                         </span>
                     </span>
+                    <div className="flex items-center justify-center gap-3">
+                        <span>
+                            Cała Trasa:{" "}
+                            <span className="font-medium text-xl text-yellow-700">
+                                {totalDistance.toFixed(1)} km
+                            </span>
+                        </span>
+                        {/* === Usuń wszystkie zlecenia === */}
+                        {orders.length > 0 && (
+                            <div className="flex justify-end mb-2">
+                                <button
+                                    onClick={async () => {
+                                        if (
+                                            !confirm(
+                                                "Na pewno chcesz usunąć wszystkie zlecenia?"
+                                            )
+                                        )
+                                            return;
+                                        setDeleting(-1); // np. -1 oznacza usuwanie wszystkich
+                                        try {
+                                            const res = await fetch(
+                                                "/api/orders",
+                                                { method: "DELETE" }
+                                            );
+                                            const data = await res.json();
+                                            if (data.ok) loadOrders();
+                                            else
+                                                alert(
+                                                    "Błąd podczas usuwania zleceń"
+                                                );
+                                        } catch (err) {
+                                            console.error(err);
+                                            alert("Błąd połączenia z API");
+                                        } finally {
+                                            setDeleting(null);
+                                        }
+                                    }}
+                                    className="bg-red-700 hover:bg-red-800 cursor-pointer text-white px-4 py-2 text-xs rounded-lg font-semibold transition"
+                                >
+                                    Usuń wszystkie zlecenia
+                                </button>
+                            </div>
+                        )}
+                    </div>
                 </div>
 
                 {loading || calculating ? (
                     <div className="space-y-4 animate-pulse">
-                        {[1, 2, 3, 4].map((i) => (
+                        {[1, 2, 3,4].map((i) => (
                             <div
                                 key={i}
                                 className="bg-white border border-gray-200 p-5 rounded-2xl shadow-sm"
                             >
                                 <div className="h-6 w-1/3 bg-gray-200 rounded mb-2" />
-                                <div className="h-4 w-1/2 bg-gray-200 rounded mb-2" />
-                                <div className="h-20 w-full bg-gray-200 rounded" />
+                                <div className="h-4 w-1/2 bg-gray-200 rounded" />
                             </div>
                         ))}
                     </div>
@@ -277,7 +325,7 @@ export default function AdminPage() {
                                     </span>
                                 </AccordionTrigger>
 
-                                <AccordionContent className="p-4 flex flex-col gap-3 border-t border-gray-200">
+                                <AccordionContent className="p-4 flex flex-col gap-3 border-t border-gray-200 relative">
                                     <h2 className="text-lg font-semibold">
                                         {o.client_name}
                                     </h2>
@@ -330,6 +378,15 @@ export default function AdminPage() {
                                             ))}
                                         </div>
                                     )}
+
+                                    {/* === Przycisk usuwania === */}
+                                    <button
+                                        onClick={() => deleteOrder(o.id)}
+                                        disabled={deleting === o.id}
+                                        className="absolute top-4 right-4 text-red-500 hover:text-red-700"
+                                    >
+                                        <Trash2 size={20} />
+                                    </button>
                                 </AccordionContent>
                             </AccordionItem>
                         ))}
