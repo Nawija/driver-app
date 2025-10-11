@@ -158,7 +158,7 @@ export default function AdminPage() {
     });
 
     return (
-        <div className="min-h-screen p-4 md:p-6 flex flex-col md:flex-row gap-6">
+        <div className="min-h-screen p-4 md:p-6 flex flex-col md:flex-row gap-6 max-w-screen-2xl mx-auto">
             <main className="flex-1 flex flex-col gap-4">
                 <div className="w-full bg-white border border-gray-200 p-6 shadow rounded-xl flex items-end justify-center space-x-4">
                     <div className="w-full">
@@ -284,7 +284,7 @@ export default function AdminPage() {
                                     </a>
                                     {/* === DODANE: zdjęcia realizacji === */}
                                     {o.photo_urls?.length ? (
-                                        <div className="flex gap-2 mt-2 overflow-x-auto py-1">
+                                        <div className="flex gap-2 mt-2 overflow-x-auto w-full lg:flex-wrap py-1">
                                             {o.photo_urls.map((url, j) => (
                                                 <button
                                                     key={j}
@@ -321,7 +321,7 @@ export default function AdminPage() {
                                     </button>
                                     {/* ✅ Data realizacji */}
                                     {o.completed && o.completed_at && (
-                                        <p className="text-green-800 bg-green-100 py-1.5 px-4 rounded-2xl font-medium text-sm mt-2 flex items-center gap-1">
+                                        <p className="text-green-800 bg-green-100 py-1.5 px-4 rounded-2xl font-medium text-sm mt-2 flex items-center gap-1 lg:w-max">
                                             <CheckCircle size={20} />{" "}
                                             Zrealizowano:{" "}
                                             {new Date(
