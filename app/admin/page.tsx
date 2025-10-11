@@ -7,6 +7,7 @@ import {
     PlusCircle,
     Clock,
     Loader2,
+    CheckCircle,
 } from "lucide-react"; // 🌀 Dodano Loader2
 import { SwiperModal } from "@/components/SwiperMd";
 
@@ -281,18 +282,59 @@ export default function AdminPage() {
                                     >
                                         <Phone size={18} /> {o.phone_number}
                                     </a>
+                                    {/* === DODANE: zdjęcia realizacji === */}
+                                    {o.photo_urls?.length ? (
+                                        <div className="flex gap-2 mt-2 overflow-x-auto py-1">
+                                            {o.photo_urls.map((url, j) => (
+                                                <button
+                                                    key={j}
+                                                    onClick={() =>
+                                                        setModal({
+                                                            photos: o.photo_urls!,
+                                                            index: j,
+                                                        })
+                                                    }
+                                                    className="w-20 h-20 rounded-xl overflow-hidden shadow-sm flex-shrink-0 cursor-pointer"
+                                                >
+                                                    <img
+                                                        src={url}
+                                                        alt={`Zdjęcie ${j + 1}`}
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                </button>
+                                            ))}
+                                        </div>
+                                    ) : null}
                                 </div>
-                                <button
-                                    onClick={() => deleteOrder(o.id)}
-                                    disabled={deleting === o.id}
-                                    className="bg-red-500 text-white p-2 rounded-xl cursor-pointer hover:bg-red-600 text-sm font-medium transition"
-                                >
-                                    {deleting === o.id ? (
-                                        "..."
-                                    ) : (
-                                        <Trash2 size={18} />
+
+                                <div className="flex flex-col h-full items-end justify-between">
+                                    <button
+                                        onClick={() => deleteOrder(o.id)}
+                                        disabled={deleting === o.id}
+                                        className="bg-red-500 text-white p-2 rounded-xl cursor-pointer hover:bg-red-600 text-sm font-medium transition"
+                                    >
+                                        {deleting === o.id ? (
+                                            "..."
+                                        ) : (
+                                            <Trash2 size={18} />
+                                        )}
+                                    </button>
+                                    {/* ✅ Data realizacji */}
+                                    {o.completed && o.completed_at && (
+                                        <p className="text-green-800 bg-green-100 py-1.5 px-4 rounded-2xl font-medium text-sm mt-2 flex items-center gap-1">
+                                            <CheckCircle size={20} /> Zrealizowano:{" "}
+                                            {new Date(
+                                                o.completed_at
+                                            ).toLocaleString("pl-PL", {
+                                                day: "2-digit",
+                                                month: "2-digit",
+                                                year: "numeric",
+                                                hour: "2-digit",
+                                                minute: "2-digit",
+                                            })}
+                                        </p>
                                     )}
-                                </button>
+                                </div>
                             </div>
                         </div>
                     ))
