@@ -50,6 +50,7 @@ export default function AdminPage() {
     } | null>(null);
     const [phoneError, setPhoneError] = useState("");
     const [calculating, setCalculating] = useState(false); // 🌀 Stan do spinnera
+    const [downloading, setDownloading] = useState(false);
 
     async function loadOrders() {
         setLoading(true);
@@ -440,6 +441,7 @@ export default function AdminPage() {
                 <div className="w-full bg-white border border-gray-200 p-6 shadow rounded-2xl space-y-3">
                     <button
                         onClick={async () => {
+                            setDownloading(true); // start loadera
                             try {
                                 const res = await fetch(
                                     "/api/export-transports"
@@ -457,11 +459,25 @@ export default function AdminPage() {
                             } catch (err) {
                                 alert("Nie udało się pobrać pliku.");
                                 console.error(err);
+                            } finally {
+                                setDownloading(false); // stop loadera
                             }
                         }}
-                        className="bg-emerald-600 hover:bg-emerald-700 cursor-pointer w-full text-white px-4 py-2 rounded-lg font-semibold transition"
+                        disabled={downloading}
+                        className={`w-full text-white px-4 py-2 cursor-pointer rounded-lg font-semibold transition flex items-center justify-center gap-2 ${
+                            downloading
+                                ? "bg-gray-600 cursor-wait"
+                                : "bg-gray-700 hover:bg-gray-900"
+                        }`}
                     >
-                        Pobierz transporty
+                        {downloading ? (
+                            <>
+                                <Loader2 className="animate-spin" size={18} />
+                                Pobieranie...
+                            </>
+                        ) : (
+                            <>Pobierz transporty</>
+                        )}
                     </button>
                     <button
                         onClick={async () => {
