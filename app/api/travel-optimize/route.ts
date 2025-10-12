@@ -21,6 +21,21 @@ interface UpdatedOrder extends Order {
     time_range: string;
 }
 
+interface InputOrder {
+    id: number;
+    client_name?: string;
+    phone_number?: string;
+    time_range?: string;
+    description?: string;
+    type: string;
+    address: string;
+    completed?: boolean;
+    completed_at?: string;
+    photo_urls?: string[];
+    coords?: [number, number];
+    travelTime?: number;
+}
+
 const WAREHOUSE_ADDRESS = "Starowiejska 10, 08-110 Siedlce";
 
 /**
@@ -118,8 +133,8 @@ export async function POST(req: Request) {
         const coords: number[][] = [];
         const validOrders: Order[] = [];
         // map of original input orders by id so we can return full objects
-        const inputById = new Map<number, any>();
-        for (const o of orders) inputById.set(o.id, o);
+        const inputById = new Map<number, InputOrder>();
+        for (const o of orders) inputById.set(o.id, o as InputOrder);
 
         for (const o of orders) {
             try {
