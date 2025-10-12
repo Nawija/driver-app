@@ -170,11 +170,11 @@ export async function POST(req: Request) {
 
         const orderedIds =
             result.routes?.[0]?.steps
-                ?.filter((s: any) => s.type === "job")
-                ?.map((s: any) => s.id) || validOrders.map((o) => o.id);
+                ?.filter((s) => s.type === "job")
+                ?.map((s) => s.id) || validOrders.map((o) => o.id);
 
         const orderedOrders = orderedIds
-            .map((id: number) => validOrders.find((o) => o.id === id))
+            .map((id) => validOrders.find((o) => o.id === id))
             .filter(Boolean) as Order[];
 
         console.log("🚚 Kolejność zoptymalizowana:", orderedIds);
