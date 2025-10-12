@@ -18,6 +18,7 @@ import {
     AccordionContent,
 } from "@/components/ui/accordion";
 import LoadingAcordeonSkeleon from "@/components/LoadingAcordeonSkeleon";
+import { RoutePlanDialog } from "@/components/RoutePlanDialog";
 
 type Order = {
     id: number;
@@ -171,6 +172,34 @@ export default function AdminPage() {
         0
     );
 
+    const [showRouteModal, setShowRouteModal] = useState(false);
+
+    async function handleRoutePlan(mode: "manual" | "auto") {
+        setShowRouteModal(false);
+        setCalculating(true);
+
+        try {
+            const endpoint =
+                mode === "manual" ? "/api/travel-calc" : "/api/travel-optimize";
+            const res = await fetch(endpoint, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ orders }),
+            });
+            const data = await res.json();
+            if (data.ok) {
+                setOrders(data.updated);
+            } else {
+                alert("Błąd podczas przeliczania tras");
+            }
+        } catch (err) {
+            console.error(err);
+            alert("Wystąpił błąd połączenia z API");
+        } finally {
+            setCalculating(false);
+        }
+    }
+
     return (
         <div className="min-h-screen p-4 md:p-6 flex flex-col md:flex-row gap-6 max-w-screen-2xl mx-auto">
             <main className="flex-1 flex flex-col gap-4">
@@ -231,48 +260,45 @@ export default function AdminPage() {
                         </span>
                     </span>
                     <div className="flex items-center justify-center gap-3">
+                        {/* === Usuń wszystkie zlecenia === */}
+                        {orders.length > 0 && (
+                            <button
+                                onClick={async () => {
+                                    if (
+                                        !confirm(
+                                            "Na pewno chcesz usunąć wszystkie zlecenia?"
+                                        )
+                                    )
+                                        return;
+                                    setDeleting(-1); // np. -1 oznacza usuwanie wszystkich
+                                    try {
+                                        const res = await fetch("/api/orders", {
+                                            method: "DELETE",
+                                        });
+                                        const data = await res.json();
+                                        if (data.ok) loadOrders();
+                                        else
+                                            alert(
+                                                "Błąd podczas usuwania zleceń"
+                                            );
+                                    } catch (err) {
+                                        console.error(err);
+                                        alert("Błąd połączenia z API");
+                                    } finally {
+                                        setDeleting(null);
+                                    }
+                                }}
+                                className="text-red-700  hover:text-red-600 hover:border-red-200 cursor-pointer font-semibold text-xs py-1.5 px-4 bg-red-50 hover:bg-red-100 transition-colors rounded-lg border border-red-500"
+                            >
+                                Usuń wszystkie zlecenia
+                            </button>
+                        )}
                         <span>
                             Cała Trasa:{" "}
                             <span className="font-medium text-xl text-yellow-700">
                                 {totalDistance.toFixed(1)} km
                             </span>
                         </span>
-                        {/* === Usuń wszystkie zlecenia === */}
-                        {orders.length > 0 && (
-                            <div className="flex justify-end mb-2">
-                                <button
-                                    onClick={async () => {
-                                        if (
-                                            !confirm(
-                                                "Na pewno chcesz usunąć wszystkie zlecenia?"
-                                            )
-                                        )
-                                            return;
-                                        setDeleting(-1); // np. -1 oznacza usuwanie wszystkich
-                                        try {
-                                            const res = await fetch(
-                                                "/api/orders",
-                                                { method: "DELETE" }
-                                            );
-                                            const data = await res.json();
-                                            if (data.ok) loadOrders();
-                                            else
-                                                alert(
-                                                    "Błąd podczas usuwania zleceń"
-                                                );
-                                        } catch (err) {
-                                            console.error(err);
-                                            alert("Błąd połączenia z API");
-                                        } finally {
-                                            setDeleting(null);
-                                        }
-                                    }}
-                                    className="bg-red-700 hover:bg-red-800 cursor-pointer text-white px-4 py-2 text-xs rounded-lg font-semibold transition"
-                                >
-                                    Usuń wszystkie zlecenia
-                                </button>
-                            </div>
-                        )}
                     </div>
                 </div>
 
@@ -299,10 +325,14 @@ export default function AdminPage() {
                                 }`}
                             >
                                 <AccordionTrigger className="flex justify-between items-center p-4 text-lg font-medium">
-                                    <div className="flex items-center gap-2">
-                                        <Clock size={20} />{" "}
-                                        {o.time_range || "Brak godziny"}
-                                    </div>
+                                    {o.time_range ? (
+                                        <div className="flex items-center gap-2">
+                                            <Clock size={20} />{" "}
+                                            {o.time_range || "Brak godziny"}
+                                        </div>
+                                    ) : (
+                                        <p className="">{o.address}</p>
+                                    )}
                                     <span
                                         className={`px-3 py-1 rounded-xl text-sm font-medium ${
                                             o.completed
@@ -521,30 +551,14 @@ export default function AdminPage() {
                             <>Pobierz transporty</>
                         )}
                     </button>
+                    <RoutePlanDialog
+                        open={showRouteModal}
+                        onClose={() => setShowRouteModal(false)}
+                        handleRoutePlan={handleRoutePlan}
+                    />
+
                     <button
-                        onClick={async () => {
-                            setCalculating(true); // 🌀 start loading
-                            try {
-                                const res = await fetch("/api/travel-calc", {
-                                    method: "POST",
-                                    headers: {
-                                        "Content-Type": "application/json",
-                                    },
-                                    body: JSON.stringify({ orders }),
-                                });
-                                const data = await res.json();
-                                if (data.ok) {
-                                    setOrders(data.updated);
-                                } else {
-                                    alert("Błąd podczas przeliczania tras");
-                                }
-                            } catch (err) {
-                                console.error(err);
-                                alert("Wystąpił błąd połączenia z API");
-                            } finally {
-                                setCalculating(false); // 🌀 koniec loading
-                            }
-                        }}
+                        onClick={() => setShowRouteModal(true)}
                         disabled={calculating}
                         className={`w-full text-white px-4 py-2 cursor-pointer rounded-lg font-semibold transition flex items-center justify-center gap-2 ${
                             calculating
@@ -558,7 +572,7 @@ export default function AdminPage() {
                                 Analizuję...
                             </>
                         ) : (
-                            <>Rozpisz przedziały dostaw</>
+                            <>Rozpisz trasę</>
                         )}
                     </button>
                 </div>
