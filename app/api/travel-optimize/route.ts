@@ -184,49 +184,53 @@ export async function POST(req: Request) {
     let currentTime = startHour + 1;
     const updatedOrders = [];
 
-    for (let i = 0; i < orderedOrders.length; i++) {
-      const o = orderedOrders[i];
-      const fromIndex = i === 0 ? 0 : i;
-      const toIndex = i + 1;
+for (let i = 0; i < orderedOrders.length; i++) {
+  const o = orderedOrders[i];
+  const fromIndex = i === 0 ? 0 : i;
+  const toIndex = i + 1;
 
-      const travelSeconds =
-        i === 0
-          ? matrixData.durations[0][toIndex]
-          : matrixData.durations[fromIndex][toIndex];
-      const travelMinutes = travelSeconds / 60;
-      const distanceKm =
-        i === 0
-          ? matrixData.distances[0][toIndex] / 1000
-          : matrixData.distances[fromIndex][toIndex] / 1000;
+  const travelSeconds =
+    i === 0
+      ? matrixData.durations[0][toIndex]
+      : matrixData.durations[fromIndex][toIndex];
+  const travelMinutes = travelSeconds / 60;
 
-      const durationHours =
-        o.type === "Transport"
-          ? 0.5
-          : o.type === "Transport + wniesienie"
-          ? 1
-          : 2;
+  const distanceKm =
+    ["Transport", "Transport + wniesienie", "Transport + wniesienie + montaż"].includes(o.type)
+      ? 0
+      : i === 0
+      ? matrixData.distances[0][toIndex] / 1000
+      : matrixData.distances[fromIndex][toIndex] / 1000;
 
-      const start = currentTime + travelMinutes / 60;
-      const end = start + durationHours;
-      currentTime = end;
+  const durationHours =
+    o.type === "Transport"
+      ? 0.5
+      : o.type === "Transport + wniesienie"
+      ? 1
+      : 2;
 
-      const startStr = floorHalfHour(start);
-      const endStr = ceilHalfHour(end);
-      const time_range = fixTimeRange(startStr, endStr);
+  const start = currentTime + travelMinutes / 60;
+  const end = start + durationHours;
+  currentTime = end;
 
-      await sql`
-        UPDATE orders
-        SET time_range = ${time_range}
-        WHERE id = ${o.id};
-      `;
+  const startStr = floorHalfHour(start);
+  const endStr = ceilHalfHour(end);
+  const time_range = fixTimeRange(startStr, endStr);
 
-      updatedOrders.push({
-        ...o,
-        travelTime: travelMinutes,
-        distanceKm,
-        time_range,
-      });
-    }
+  await sql`
+    UPDATE orders
+    SET time_range = ${time_range}
+    WHERE id = ${o.id};
+  `;
+
+  updatedOrders.push({
+    ...o,
+    travelTime: travelMinutes,
+    distanceKm,
+    time_range,
+  });
+}
+
 
     return NextResponse.json({
       ok: true,

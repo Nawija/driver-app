@@ -304,12 +304,6 @@ export default function AdminPage() {
                                 Usuń wszystkie zlecenia
                             </button>
                         )}
-                        <span>
-                            Cała Trasa:{" "}
-                            <span className="font-medium text-xl text-yellow-700">
-                                {totalDistance.toFixed(1)} km
-                            </span>
-                        </span>
                     </div>
                 </div>
 
@@ -354,7 +348,7 @@ export default function AdminPage() {
                                         {o.completed
                                             ? `Zrealizowano ${new Date(
                                                   o.completed_at ?? ""
-                                              ).toLocaleTimeString([], {
+                                              ).toLocaleTimeString("pl-PL", {
                                                   hour: "2-digit",
                                                   minute: "2-digit",
                                               })}`
