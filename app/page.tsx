@@ -8,6 +8,7 @@ import {
     AccordionItem,
     AccordionTrigger,
 } from "@/components/ui/accordion";
+import LoadingAcordeonSkeleon from "@/components/LoadingAcordeonSkeleon";
 
 type Order = {
     id: number;
@@ -143,21 +144,7 @@ export default function HomePage() {
             {/* ORDERS LIST */}
             <main className="max-w-4xl mx-auto flex flex-col gap-8">
                 {loading ? (
-                    <div className="space-y-4">
-                        {Array.from({ length: 4 }).map((_, i) => (
-                            <div
-                                key={i}
-                                className="animate-pulse bg-white p-4.5 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center"
-                            >
-                                <div className="flex items-center gap-2">
-                                    <div className="w-6 h-6 bg-gray-200 rounded-full" />
-                                    <div className="h-5 w-32 bg-gray-200 rounded" />
-                                </div>
-                                <div className="h-6 w-28 bg-gray-200 rounded-full" />
-                                <div/>
-                            </div>
-                        ))}
-                    </div>
+                    <LoadingAcordeonSkeleon />
                 ) : orders.length === 0 ? (
                     <div className="bg-white p-6 rounded-2xl shadow text-center text-gray-500">
                         Brak zleceń do wyświetlenia.
