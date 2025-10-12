@@ -1,6 +1,6 @@
 "use client";
-import { useEffect, useState } from "react";
-import { Phone, MapPin, Upload, Clock } from "lucide-react";
+import { useEffect, useState, useRef } from "react";
+import { Phone, MapPin, Upload, Clock, X, PencilLine } from "lucide-react";
 import { SwiperModal } from "@/components/SwiperMd";
 import {
     Accordion,
@@ -8,6 +8,7 @@ import {
     AccordionItem,
     AccordionTrigger,
 } from "@/components/ui/accordion";
+import SignatureCanvas from "react-signature-canvas";
 import LoadingAcordeonSkeleon from "@/components/LoadingAcordeonSkeleon";
 
 type Order = {
@@ -21,6 +22,7 @@ type Order = {
     completed_at?: string;
     time_range?: string;
     photo_urls?: string[];
+    signature?: string;
 };
 
 type Settings = {
@@ -38,13 +40,24 @@ export default function HomePage() {
     const [loading, setLoading] = useState<boolean>(true);
     const [galleryImages, setGalleryImages] = useState<string[]>([]);
     const [galleryIndex, setGalleryIndex] = useState<number>(0);
+    const [savingSignature, setSavingSignature] = useState(false);
+    // podpis
+    const [signatureMap, setSignatureMap] = useState<{
+        [id: number]: string | null;
+    }>({});
+    const [showSignatureMap, setShowSignatureMap] = useState<{
+        [id: number]: boolean;
+    }>({});
+    const sigCanvas = useRef<SignatureCanvas>(null);
+    const [activeSignatureOrder, setActiveSignatureOrder] = useState<
+        number | null
+    >(null);
 
     async function loadOrders() {
         setLoading(true);
         try {
             const res = await fetch("/api/orders");
             const data: Order[] = await res.json();
-
             data.sort((a, b) => {
                 if (!a.time_range) return 1;
                 if (!b.time_range) return -1;
@@ -58,7 +71,6 @@ export default function HomePage() {
                     .map(Number);
                 return aH * 60 + aM - (bH * 60 + bM);
             });
-
             setOrders(data);
         } catch (e) {
             console.error(e);
@@ -77,12 +89,16 @@ export default function HomePage() {
         }
     }
 
-    async function markCompleted(id: number, photoUrls?: string[]) {
+    async function markCompleted(
+        id: number,
+        photoUrls?: string[],
+        signature?: string
+    ) {
         try {
             await fetch(`/api/orders/${id}`, {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ photoUrls }),
+                body: JSON.stringify({ photoUrls, signature }),
             });
             await loadOrders();
         } catch (e) {
@@ -104,7 +120,12 @@ export default function HomePage() {
                 const data = await res.json();
                 if (data?.ok && data.url) uploadedUrls.push(data.url);
             }
-            if (uploadedUrls.length > 0) await markCompleted(id, uploadedUrls);
+            if (uploadedUrls.length > 0)
+                await markCompleted(
+                    id,
+                    uploadedUrls,
+                    signatureMap[id] || undefined
+                );
         } catch (e) {
             console.error(e);
             alert("Błąd przesyłania zdjęć");
@@ -216,7 +237,7 @@ export default function HomePage() {
                                     </div>
 
                                     {/* GALERIA */}
-                                    {o.photo_urls?.length ? (
+                                    {o.photo_urls?.length && (
                                         <div className="flex gap-2 mt-2 overflow-x-auto py-1">
                                             {o.photo_urls.map((url, j) => (
                                                 <button
@@ -237,9 +258,9 @@ export default function HomePage() {
                                                 </button>
                                             ))}
                                         </div>
-                                    ) : null}
+                                    )}
 
-                                    {/* ACTIONS */}
+                                    {/* AKCJE */}
                                     <div className="flex flex-col gap-3 mt-2">
                                         {/* DODAJ ZDJĘCIE */}
                                         <label className="flex items-center justify-center gap-2 px-4 py-3 bg-gray-800 text-white font-semibold rounded-xl hover:bg-gray-700 transition cursor-pointer">
@@ -270,17 +291,36 @@ export default function HomePage() {
                                             />
                                         </label>
 
-                                        {/* OZNACZ BEZ ZDJĘĆ */}
+                                        {/* POKAŻ PODPIS */}
+                                        {!signatureMap[o.id] && (
+                                            <button
+                                                onClick={() =>
+                                                    setActiveSignatureOrder(
+                                                        o.id
+                                                    )
+                                                }
+                                                className="px-4 py-2 bg-blue-200 rounded-xl font-semibold flex items-center justify-center gap-2"
+                                            >
+                                                <PencilLine size={20} />
+                                                <span>Podpis klienta</span>
+                                            </button>
+                                        )}
+
+                                        {/* OZNACZ JAKO ZREALIZOWANE */}
                                         {!o.completed && (
                                             <button
                                                 onClick={() => {
-                                                    if (
-                                                        !confirm(
-                                                            "Oznaczyć jako zrealizowane bez zdjęć?"
-                                                        )
-                                                    )
+                                                    if (!signatureMap[o.id]) {
+                                                        alert(
+                                                            "Klient musi podpisać się przed oznaczeniem jako zrealizowane."
+                                                        );
                                                         return;
-                                                    markCompleted(o.id);
+                                                    }
+                                                    markCompleted(
+                                                        o.id,
+                                                        undefined,
+                                                        signatureMap[o.id]!
+                                                    );
                                                 }}
                                                 className="px-4 py-2 border cursor-pointer rounded-xl font-semibold text-gray-700 hover:bg-gray-100 transition"
                                             >
@@ -302,6 +342,158 @@ export default function HomePage() {
                     initialIndex={galleryIndex}
                     onClose={() => setGalleryImages([])}
                 />
+            )}
+
+            {/* FULLSCREEN PODPIS */}
+            {activeSignatureOrder !== null && (
+                <div className="fixed inset-0 bg-black/70 z-50 flex flex-col items-center justify-center p-4">
+                    <div className="bg-white w-full h-full flex flex-col items-center justify-center relative rounded-xl">
+                        <button
+                            className="absolute top-4 right-4 p-2 text-gray-600 hover:text-black"
+                            onClick={() => setActiveSignatureOrder(null)}
+                        >
+                            <X size={24} />
+                        </button>
+                        <SignatureCanvas
+                            ref={sigCanvas}
+                            penColor="black"
+                            canvasProps={{
+                                className: "w-full h-full border rounded-xl",
+                            }}
+                        />
+                        <div className="flex gap-4 mt-2 pb-2">
+                            <button
+                                className="px-4 py-2 bg-gray-200 rounded"
+                                onClick={() => sigCanvas.current?.clear()}
+                            >
+                                Wyczyść
+                            </button>
+
+                            <button
+                                className="px-4 py-2 bg-green-800 text-white rounded flex items-center justify-center gap-2"
+                                onClick={async () => {
+                                    if (
+                                        !sigCanvas.current ||
+                                        activeSignatureOrder === null
+                                    )
+                                        return;
+
+                                    setSavingSignature(true); // 🔹 włączamy spinner
+
+                                    const tempCanvas =
+                                        document.createElement("canvas");
+                                    tempCanvas.width =
+                                        sigCanvas.current.getCanvas().width;
+                                    tempCanvas.height =
+                                        sigCanvas.current.getCanvas().height;
+                                    const ctx = tempCanvas.getContext("2d");
+                                    if (!ctx) {
+                                        setSavingSignature(false);
+                                        return;
+                                    }
+                                    ctx.fillStyle = "white";
+                                    ctx.fillRect(
+                                        0,
+                                        0,
+                                        tempCanvas.width,
+                                        tempCanvas.height
+                                    );
+                                    ctx.drawImage(
+                                        sigCanvas.current.getCanvas(),
+                                        0,
+                                        0
+                                    );
+
+                                    tempCanvas.toBlob(async (blob) => {
+                                        if (!blob) {
+                                            setSavingSignature(false);
+                                            return;
+                                        }
+
+                                        const formData = new FormData();
+                                        formData.append(
+                                            "file",
+                                            blob,
+                                            `signature_${activeSignatureOrder}.png`
+                                        );
+
+                                        try {
+                                            const uploadRes = await fetch(
+                                                "/api/upload",
+                                                {
+                                                    method: "POST",
+                                                    body: formData,
+                                                }
+                                            );
+                                            const data = await uploadRes.json();
+                                            if (data?.ok && data.url) {
+                                                // Zapis podpisu w bazie
+                                                await fetch(
+                                                    `/api/orders/${activeSignatureOrder}`,
+                                                    {
+                                                        method: "PATCH",
+                                                        headers: {
+                                                            "Content-Type":
+                                                                "application/json",
+                                                        },
+                                                        body: JSON.stringify({
+                                                            photoUrls: [
+                                                                data.url,
+                                                            ],
+                                                        }),
+                                                    }
+                                                );
+
+                                                // Aktualizacja frontend
+                                                setOrders((prev) =>
+                                                    prev.map((o) =>
+                                                        o.id ===
+                                                        activeSignatureOrder
+                                                            ? {
+                                                                  ...o,
+                                                                  photo_urls: [
+                                                                      ...(o.photo_urls ||
+                                                                          []),
+                                                                      data.url,
+                                                                  ],
+                                                              }
+                                                            : o
+                                                    )
+                                                );
+
+                                                setSignatureMap((prev) => ({
+                                                    ...prev,
+                                                    [activeSignatureOrder]:
+                                                        data.url,
+                                                }));
+                                                setActiveSignatureOrder(null);
+                                            }
+                                        } catch (err) {
+                                            console.error(
+                                                "❌ Błąd zapisu podpisu",
+                                                err
+                                            );
+                                            alert(
+                                                "Nie udało się zapisać podpisu"
+                                            );
+                                        } finally {
+                                            setSavingSignature(false); // 🔹 wyłączamy spinner
+                                        }
+                                    }, "image/png");
+                                }}
+                            >
+                                {savingSignature ? (
+                                    <div className="flex items-center justify-center gap-2">
+                                        <span className="loader-border w-5 h-5 border-2 border-white rounded-full border-t-transparent animate-spin" />
+                                        <p>Zapisuje...</p>
+                                    </div>
+                                ) : (
+                                    "Zapisz podpis"
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
         </div>
     );
