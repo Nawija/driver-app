@@ -432,7 +432,7 @@ export default function AdminPage() {
                             type="text"
                             value={form.clientName}
                             placeholder="Imię i nazwisko klienta"
-                            className="border border-gray-300 rounded-lg px-3 py-2 bg-gray-50 focus:ring-2 focus:ring-blue-500 outline-none"
+                            className="border border-gray-300 rounded-lg px-3 py-2 bg-gray-50 focus:ring focus:ring-blue-500 outline-none"
                             onChange={(e) =>
                                 setForm({ ...form, clientName: e.target.value })
                             }
@@ -442,7 +442,7 @@ export default function AdminPage() {
                             type="tel"
                             value={form.phoneNumber}
                             placeholder="Numer telefonu"
-                            className={`border rounded-lg px-3 py-2 bg-gray-50 focus:ring-2 outline-none transition-all ${
+                            className={`border rounded-lg px-3 py-2 bg-gray-50 focus:ring outline-none transition-all ${
                                 phoneError
                                     ? "border-red-400 focus:ring-red-400"
                                     : "border-gray-300 focus:ring-blue-500"
@@ -464,7 +464,7 @@ export default function AdminPage() {
                             required
                         />
                         {phoneError && (
-                            <p className="text-red-500 text-sm mt-1">
+                            <p className="text-red-500 text-sm -mt-2">
                                 {phoneError}
                             </p>
                         )}
@@ -473,7 +473,7 @@ export default function AdminPage() {
                             type="text"
                             value={form.address}
                             placeholder="Adres dostawy"
-                            className="border border-gray-300 rounded-lg px-3 py-2 bg-gray-50 focus:ring-2 focus:ring-blue-500 outline-none"
+                            className="border border-gray-300 rounded-lg px-3 py-2 bg-gray-50 focus:ring focus:ring-blue-500 outline-none"
                             onChange={(e) =>
                                 setForm({ ...form, address: e.target.value })
                             }
@@ -482,7 +482,7 @@ export default function AdminPage() {
                         <textarea
                             value={form.description}
                             placeholder="Opis (opcjonalnie)"
-                            className="border border-gray-300 rounded-lg px-3 py-2 bg-gray-50 focus:ring-2 focus:ring-blue-500 outline-none min-h-[70px]"
+                            className="border border-gray-300 rounded-lg px-3 py-2 bg-gray-50 focus:ring focus:ring-blue-500 outline-none min-h-[70px]"
                             onChange={(e) =>
                                 setForm({
                                     ...form,
@@ -492,7 +492,7 @@ export default function AdminPage() {
                         />
                         <select
                             value={form.type}
-                            className="border border-gray-300 rounded-lg px-3 py-2 bg-gray-50 focus:ring-2 focus:ring-blue-500 outline-none"
+                            className="border border-gray-300 rounded-lg px-3 py-2 bg-gray-50 focus:ring focus:ring-blue-500 outline-none"
                             onChange={(e) =>
                                 setForm({ ...form, type: e.target.value })
                             }
@@ -515,70 +515,71 @@ export default function AdminPage() {
                     </form>
                 </div>
 
+                <div className="w-full bg-white border border-gray-200 p-6 shadow rounded-2xl space-y-3">
+                    <button
+                        onClick={async () => {
+                            setDownloading(true); // start loadera
+                            try {
+                                const res = await fetch(
+                                    "/api/export-transports"
+                                );
+                                if (!res.ok) throw new Error("Błąd eksportu");
+                                const blob = await res.blob();
+                                const url = window.URL.createObjectURL(blob);
+                                const a = document.createElement("a");
+                                a.href = url;
+                                a.download = `${
+                                    settings.page_title || "Dostawy"
+                                }.zip`;
+                                a.click();
+                                window.URL.revokeObjectURL(url);
+                            } catch (err) {
+                                alert("Nie udało się pobrać pliku.");
+                                console.error(err);
+                            } finally {
+                                setDownloading(false); // stop loadera
+                            }
+                        }}
+                        disabled={downloading}
+                        className="text-sky-700 w-full hover:text-sky-600 hover:border-sky-200 font-semibold text-sm py-2 px-4 bg-sky-50 hover:bg-sky-100 transition-colors rounded-lg border border-sky-500 flex items-center justify-center gap-2"
+                    >
+                        {downloading ? (
+                            <>
+                                <Loader2 className="animate-spin" size={18} />
+                                Pobieranie...
+                            </>
+                        ) : (
+                            <>
+                                <Download size={18} />
+                                Pobierz transporty
+                            </>
+                        )}
+                    </button>
 
+                    <RoutePlanDialog
+                        open={showRouteModal}
+                        onClose={() => setShowRouteModal(false)}
+                        handleRoutePlan={handleRoutePlan}
+                    />
 
-<div className="w-full bg-white border border-gray-200 p-6 shadow rounded-2xl space-y-3">
-  <button
-    onClick={async () => {
-      setDownloading(true); // start loadera
-      try {
-        const res = await fetch("/api/export-transports");
-        if (!res.ok) throw new Error("Błąd eksportu");
-        const blob = await res.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `${settings.page_title || "Dostawy"}.zip`;
-        a.click();
-        window.URL.revokeObjectURL(url);
-      } catch (err) {
-        alert("Nie udało się pobrać pliku.");
-        console.error(err);
-      } finally {
-        setDownloading(false); // stop loadera
-      }
-    }}
-    disabled={downloading}
-    className="text-sky-700 w-full hover:text-sky-600 hover:border-sky-200 font-semibold text-sm py-2 px-4 bg-sky-50 hover:bg-sky-100 transition-colors rounded-lg border border-sky-500 flex items-center justify-center gap-2"
-  >
-    {downloading ? (
-      <>
-        <Loader2 className="animate-spin" size={18} />
-        Pobieranie...
-      </>
-    ) : (
-      <>
-        <Download size={18} />
-        Pobierz transporty
-      </>
-    )}
-  </button>
-
-  <RoutePlanDialog
-    open={showRouteModal}
-    onClose={() => setShowRouteModal(false)}
-    handleRoutePlan={handleRoutePlan}
-  />
-
-  <button
-    onClick={() => setShowRouteModal(true)}
-    disabled={calculating}
-    className="text-pink-700 w-full hover:text-pink-600 hover:border-pink-200 font-semibold text-sm py-2 px-4 bg-pink-50 hover:bg-pink-100 transition-colors rounded-lg border border-pink-500 flex items-center justify-center gap-2"
-  >
-    {calculating ? (
-      <>
-        <Loader2 className="animate-spin" size={18} />
-        Analizuję...
-      </>
-    ) : (
-      <>
-        <MapPin size={18} />
-        Rozpisz trasę
-      </>
-    )}
-  </button>
-</div>
-
+                    <button
+                        onClick={() => setShowRouteModal(true)}
+                        disabled={calculating}
+                        className="text-pink-700 w-full hover:text-pink-600 hover:border-pink-200 font-semibold text-sm py-2 px-4 bg-pink-50 hover:bg-pink-100 transition-colors rounded-lg border border-pink-500 flex items-center justify-center gap-2"
+                    >
+                        {calculating ? (
+                            <>
+                                <Loader2 className="animate-spin" size={18} />
+                                Analizuję...
+                            </>
+                        ) : (
+                            <>
+                                <MapPin size={18} />
+                                Rozpisz trasę
+                            </>
+                        )}
+                    </button>
+                </div>
             </aside>
 
             {modal && (
