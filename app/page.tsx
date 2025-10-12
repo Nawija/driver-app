@@ -106,7 +106,7 @@ export default function HomePage() {
             if (uploadedUrls.length > 0) await markCompleted(id, uploadedUrls);
         } catch (e) {
             console.error(e);
-            alert("Błąd przesyłania");
+            alert("Błąd przesyłania zdjęć");
         } finally {
             setUploading(null);
         }
@@ -170,7 +170,9 @@ export default function HomePage() {
                                 key={o.id}
                                 value={`order-${o.id}`}
                                 className={`border-2 rounded-xl shadow-sm bg-white ${
-                                    o.completed ? "border-l-green-400 border-l-2" : "border-white"
+                                    o.completed
+                                        ? "border-l-green-400 border-l-2"
+                                        : "border-white"
                                 }`}
                             >
                                 <AccordionTrigger className="flex justify-between items-center p-4 text-lg font-medium">
@@ -223,7 +225,8 @@ export default function HomePage() {
                                         </a>
                                     </div>
 
-                                    {o.photo_urls?.length && (
+                                    {/* GALERIA */}
+                                    {o.photo_urls?.length ? (
                                         <div className="flex gap-2 mt-2 overflow-x-auto py-1">
                                             {o.photo_urls.map((url, j) => (
                                                 <button
@@ -244,7 +247,57 @@ export default function HomePage() {
                                                 </button>
                                             ))}
                                         </div>
-                                    )}
+                                    ) : null}
+
+                                    {/* ACTIONS */}
+                                    <div className="flex flex-col gap-3 mt-2">
+                                        {/* DODAJ ZDJĘCIE */}
+                                        <label className="flex items-center justify-center gap-2 px-4 py-3 bg-gray-800 text-white font-semibold rounded-xl hover:bg-gray-700 transition cursor-pointer">
+                                            {uploading === o.id ? (
+                                                <span className="loader-border w-5 h-5 border-2 border-white rounded-full border-t-transparent animate-spin" />
+                                            ) : (
+                                                <>
+                                                    <Upload size={20} />
+                                                    {o.photo_urls?.length
+                                                        ? "Dodaj kolejne zdjęcie"
+                                                        : "Dodaj zdjęcie"}
+                                                </>
+                                            )}
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                multiple
+                                                className="hidden"
+                                                onChange={(e) => {
+                                                    const files =
+                                                        e.target.files;
+                                                    if (files)
+                                                        handleFileUpload(
+                                                            o.id,
+                                                            files
+                                                        );
+                                                }}
+                                            />
+                                        </label>
+
+                                        {/* OZNACZ BEZ ZDJĘĆ */}
+                                        {!o.completed && (
+                                            <button
+                                                onClick={() => {
+                                                    if (
+                                                        !confirm(
+                                                            "Oznaczyć jako zrealizowane bez zdjęć?"
+                                                        )
+                                                    )
+                                                        return;
+                                                    markCompleted(o.id);
+                                                }}
+                                                className="px-4 py-2 border cursor-pointer rounded-xl font-semibold text-gray-700 hover:bg-gray-100 transition"
+                                            >
+                                                Oznacz jako zrealizowane
+                                            </button>
+                                        )}
+                                    </div>
                                 </AccordionContent>
                             </AccordionItem>
                         ))}
