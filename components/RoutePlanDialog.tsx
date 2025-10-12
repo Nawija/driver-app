@@ -23,7 +23,7 @@ export function RoutePlanDialog({
 }: RoutePlanDialogProps) {
     return (
         <Dialog open={open} onOpenChange={onClose}>
-            <DialogContent className="max-w-md text-center rounded-2xl">
+            <DialogContent className="max-w-sm text-center rounded-2xl">
                 <DialogHeader>
                     <DialogTitle className="text-xl font-semibold text-gray-800">
                         Jak chcesz rozplanować trasę?
@@ -35,14 +35,33 @@ export function RoutePlanDialog({
 
                 <div className="flex flex-col gap-3 mt-4">
                     <button
-                        onClick={() => handleRoutePlan("manual")}
+                        onClick={() => {
+                            handleRoutePlan("manual");
+                            const element = document.getElementById("delivery");
+                            if (element) {
+                                element.scrollIntoView({
+                                    behavior: "smooth",
+                                    block: "start",
+                                });
+                            }
+                        }}
                         className="text-sky-700 w-full hover:text-sky-600 hover:border-sky-200 font-semibold text-sm py-2 px-4 bg-sky-50 hover:bg-sky-100 transition-colors rounded-lg border border-sky-500 flex items-center justify-center gap-2"
                     >
                         <List size={18} />
                         Według kolejności dodania
                     </button>
+
                     <button
-                        onClick={() => handleRoutePlan("auto")}
+                        onClick={() => {
+                            handleRoutePlan("auto");
+                            const element = document.getElementById("delivery");
+                            if (element) {
+                                element.scrollIntoView({
+                                    behavior: "smooth",
+                                    block: "start",
+                                });
+                            }
+                        }}
                         className="text-green-700 w-full hover:text-green-600 hover:border-green-200 font-semibold text-sm py-2 px-4 bg-green-50 hover:bg-green-100 transition-colors rounded-lg border border-green-500 flex items-center justify-center gap-2"
                     >
                         <Zap size={18} />

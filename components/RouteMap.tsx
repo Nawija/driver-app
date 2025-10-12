@@ -72,7 +72,7 @@ export default function RouteMap({ orders }: { orders: OrderWithCoords[] }) {
     return (
         <motion.div
             initial={{ height: 0 }}
-            animate={{ height: hasCoords ? 600 : 0 }}
+            animate={{ height: hasCoords ? 450 : 0 }}
             transition={{ duration: 0.8, ease: "easeInOut" }}
             className="w-full rounded-2xl overflow-hidden z-0"
         >
@@ -80,7 +80,7 @@ export default function RouteMap({ orders }: { orders: OrderWithCoords[] }) {
                 <MapContainer
                     center={WAREHOUSE.coords}
                     zoom={12}
-                    style={{ width: "100%", height: "600px" }}
+                    style={{ width: "100%", height: "450px" }}
                 >
                     <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 

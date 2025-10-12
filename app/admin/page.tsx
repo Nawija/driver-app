@@ -263,6 +263,7 @@ export default function AdminPage() {
                             : "Zapisz ustawienia"}
                     </button>
                 </div>
+                <div id="delivery" className="scroll-m-24" />
 
                 <RouteMap
                     orders={orders.map((o, i) => ({
