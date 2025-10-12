@@ -4,6 +4,10 @@ import { initDb } from "@/lib/db";
 
 const ORS_API_KEY = process.env.ORS_API_KEY!;
 
+if (!ORS_API_KEY) {
+    console.error("ORS_API_KEY is not set in environment variables.");
+}
+
 interface Order {
     id: number;
     address: string;
@@ -113,6 +117,9 @@ export async function POST(req: Request) {
         const warehouseCoords = await getCoords(WAREHOUSE_ADDRESS);
         const coords: number[][] = [];
         const validOrders: Order[] = [];
+        // map of original input orders by id so we can return full objects
+        const inputById = new Map<number, any>();
+        for (const o of orders) inputById.set(o.id, o);
 
         for (const o of orders) {
             try {
@@ -255,8 +262,12 @@ export async function POST(req: Request) {
 
             const coordPair = coords[toIndex - 1];
 
+            const orig = inputById.get(o.id) || o;
             updatedOrders.push({
-                ...o,
+                ...orig,
+                id: o.id,
+                address: o.address,
+                type: o.type,
                 coords: [coordPair[1], coordPair[0]],
                 travelTime: travelMinutes,
                 distanceKm,
@@ -264,10 +275,31 @@ export async function POST(req: Request) {
             });
         }
 
+        // Validate coords and fallback to original input coords if necessary
+        const validated = updatedOrders.map((u) => {
+            const ok =
+                Array.isArray(u.coords) &&
+                u.coords.length === 2 &&
+                Number.isFinite(u.coords[0]) &&
+                Number.isFinite(u.coords[1]);
+            if (!ok) {
+                const orig = inputById.get(u.id);
+                if (orig?.coords && Array.isArray(orig.coords)) {
+                    return { ...u, coords: orig.coords };
+                }
+            }
+            return u;
+        });
+
+        console.log(
+            `Optimization result: updated ${validated.length} orders. sample:`,
+            validated.slice(0, 3)
+        );
+
         return NextResponse.json({
             ok: true,
             warehouse: WAREHOUSE_ADDRESS,
-            updated: updatedOrders,
+            updated: validated,
         });
     } catch (err) {
         console.error("Optimization error:", err);
