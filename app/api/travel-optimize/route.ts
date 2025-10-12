@@ -196,20 +196,25 @@ export async function POST(req: Request) {
         );
 
         const matrixData = await matrixRes.json();
-
         // 7️⃣ Harmonogram
+        // Create a map from order id -> index in the matrix locations array
+        // locations = [warehouseCoords, ...coords] so first order coords = index 1
+        const idToMatrixIndex = new Map<number, number>();
+        for (let i = 0; i < validOrders.length; i++) {
+            idToMatrixIndex.set(validOrders[i].id, i + 1);
+        }
+
         let currentTime = startHour + 1;
-        const updatedOrders = [];
+        const updatedOrders: any[] = [];
 
         for (let i = 0; i < orderedOrders.length; i++) {
             const o = orderedOrders[i];
-            const fromIndex = i === 0 ? 0 : i;
-            const toIndex = i + 1;
+            const toIndex = idToMatrixIndex.get(o.id)!; // location index in matrix
+            const fromIndex =
+                i === 0 ? 0 : idToMatrixIndex.get(orderedOrders[i - 1].id)!;
 
             const travelSeconds =
-                i === 0
-                    ? matrixData.durations[0][toIndex]
-                    : matrixData.durations[fromIndex][toIndex];
+                matrixData.durations?.[fromIndex]?.[toIndex] ?? 0;
             const travelMinutes = travelSeconds / 60;
 
             const distanceKm = [
@@ -218,9 +223,7 @@ export async function POST(req: Request) {
                 "Transport + wniesienie + montaż",
             ].includes(o.type)
                 ? 0
-                : i === 0
-                ? matrixData.distances[0][toIndex] / 1000
-                : matrixData.distances[fromIndex][toIndex] / 1000;
+                : (matrixData.distances?.[fromIndex]?.[toIndex] ?? 0) / 1000;
 
             const durationHours =
                 o.type === "Transport"
@@ -243,9 +246,11 @@ export async function POST(req: Request) {
     WHERE id = ${o.id};
   `;
 
+            const coordPair = coords[toIndex - 1];
+
             updatedOrders.push({
                 ...o,
-                coords: [coords[i][1], coords[i][0]],
+                coords: [coordPair[1], coordPair[0]],
                 travelTime: travelMinutes,
                 distanceKm,
                 time_range,
