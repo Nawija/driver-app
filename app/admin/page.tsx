@@ -208,8 +208,8 @@ export default function AdminPage() {
     return (
         <div className="min-h-screen p-4 md:p-6 flex flex-col md:flex-row gap-6 max-w-screen-2xl mx-auto">
             <main className="flex-1 flex flex-col gap-4">
-                <div className="w-full bg-white border border-gray-200 p-6 pt-7 shadow rounded-xl flex items-end justify-center space-x-4">
-                    <div className="w-full relative">
+                <div className="w-full flex-col md:flex-row bg-white border border-gray-200 p-6 pt-7 shadow rounded-xl flex items-end justify-center md:space-x-4 md:space-y-0 space-y-5">
+                    <div className="w-full md:max-w-60 relative">
                         <p className="font-semibold absolute -top-3 left-3 bg-white px-1 text-sm text-gray-600">
                             Godzina startu dostaw
                         </p>
@@ -249,7 +249,7 @@ export default function AdminPage() {
                     <button
                         onClick={saveSettings}
                         disabled={savingSettings}
-                        className="bg-blue-600 hover:bg-blue-700 text-white w-max text-nowrap py-2 px-4 rounded-lg font-semibold transition"
+                        className="text-blue-700  hover:text-blue-600 hover:border-blue-200 w-full md:w-auto  font-semibold text-sm md:text-xs py-2 md:py-1.5 px-4 bg-blue-50 hover:bg-blue-100 transition-colors rounded-lg border border-blue-500"
                     >
                         {savingSettings
                             ? "Zapisywanie..."
@@ -260,7 +260,7 @@ export default function AdminPage() {
                 <div className="font-semibold text-lg text-slate-800 flex justify-between items-center mt-4">
                     <span>
                         Ilość dostaw:{" "}
-                        <span className="font-medium text-xl text-yellow-700">
+                        <span className="font-medium text-xl text-sky-600">
                             ({orders.length})
                         </span>
                     </span>
@@ -333,10 +333,10 @@ export default function AdminPage() {
                                         <p className="">{o.address}</p>
                                     )}
                                     <span
-                                        className={`px-3 py-1 rounded-xl text-sm font-medium ${
+                                        className={`px-3 py-1 rounded-xl text-xs md:text-sm border font-medium ${
                                             o.completed
-                                                ? "bg-green-100 text-green-700"
-                                                : "bg-gray-200 text-gray-700"
+                                                ? "bg-green-100 text-green-700 border-green-200"
+                                                : "bg-gray-200 text-gray-700 border-gray-300"
                                         }`}
                                     >
                                         {o.completed
@@ -507,7 +507,7 @@ export default function AdminPage() {
 
                         <button
                             disabled={adding}
-                            className="bg-blue-600 hover:bg-blue-700  text-white py-2 rounded-lg font-semibold transition-all"
+                            className="text-blue-700  hover:text-blue-600 hover:border-blue-200  font-semibold text-sm py-2 px-4 bg-blue-50 hover:bg-blue-100 transition-colors rounded-lg border border-blue-500"
                         >
                             {adding ? "Dodawanie..." : "Dodaj zlecenie"}
                         </button>
@@ -540,11 +540,7 @@ export default function AdminPage() {
                             }
                         }}
                         disabled={downloading}
-                        className={`w-full text-white px-4 py-2  rounded-lg font-semibold transition flex items-center justify-center gap-2 ${
-                            downloading
-                                ? "bg-gray-600 cursor-wait"
-                                : "bg-gray-700 hover:bg-gray-900"
-                        }`}
+                            className="text-sky-700 w-full hover:text-sky-600 hover:border-sky-200  font-semibold text-sm py-2 px-4 bg-sky-50 hover:bg-sky-100 transition-colors rounded-lg border border-sky-500"
                     >
                         {downloading ? (
                             <>
@@ -564,11 +560,7 @@ export default function AdminPage() {
                     <button
                         onClick={() => setShowRouteModal(true)}
                         disabled={calculating}
-                        className={`w-full text-white px-4 py-2  rounded-lg font-semibold transition flex items-center justify-center gap-2 ${
-                            calculating
-                                ? "bg-pink-400 cursor-wait"
-                                : "bg-pink-600 hover:bg-pink-700"
-                        }`}
+                             className="text-pink-700 w-full hover:text-pink-600 hover:border-pink-200  font-semibold text-sm py-2 px-4 bg-pink-50 hover:bg-pink-100 transition-colors rounded-lg border border-pink-500"
                     >
                         {calculating ? (
                             <>
