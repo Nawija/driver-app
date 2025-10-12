@@ -10,6 +10,13 @@ interface Order {
     type: string;
 }
 
+interface UpdatedOrder extends Order {
+    coords: [number, number];
+    travelTime: number;
+    distanceKm: number;
+    time_range: string;
+}
+
 const WAREHOUSE_ADDRESS = "Starowiejska 10, 08-110 Siedlce";
 
 /**
@@ -205,7 +212,7 @@ export async function POST(req: Request) {
         }
 
         let currentTime = startHour + 1;
-        const updatedOrders: any[] = [];
+        const updatedOrders: UpdatedOrder[] = [];
 
         for (let i = 0; i < orderedOrders.length; i++) {
             const o = orderedOrders[i];
