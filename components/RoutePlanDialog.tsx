@@ -9,6 +9,7 @@ import {
     DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { List, Zap, X } from "lucide-react"; // Ikony
 
 interface RoutePlanDialogProps {
     open: boolean;
@@ -34,28 +35,30 @@ export function RoutePlanDialog({
                 </DialogHeader>
 
                 <div className="flex flex-col gap-3 mt-4">
-                    <Button
-                        className="bg-blue-600 hover:bg-blue-700 text-white py-2 font-semibold transition"
+                    <button
                         onClick={() => handleRoutePlan("manual")}
+                        className="text-sky-700 w-full hover:text-sky-600 hover:border-sky-200 font-semibold text-sm py-2 px-4 bg-sky-50 hover:bg-sky-100 transition-colors rounded-lg border border-sky-500 flex items-center justify-center gap-2"
                     >
+                        <List size={18} />
                         Według kolejności dodania
-                    </Button>
-                    <Button
-                        className="bg-green-600 hover:bg-green-700 text-white py-2 font-semibold transition"
+                    </button>
+                    <button
                         onClick={() => handleRoutePlan("auto")}
+                        className="text-green-700 w-full hover:text-green-600 hover:border-green-200 font-semibold text-sm py-2 px-4 bg-green-50 hover:bg-green-100 transition-colors rounded-lg border border-green-500 flex items-center justify-center gap-2"
                     >
+                        <Zap size={18} />
                         Zoptymalizuj trasę automatycznie
-                    </Button>
+                    </button>
                 </div>
 
                 <DialogFooter className="mt-3">
-                    <Button
-                        variant="ghost"
-                        className="text-gray-500 hover:text-gray-700 text-sm"
+                    <button
                         onClick={onClose}
+                        className="text-gray-500 hover:text-gray-700 text-sm w-full py-2 px-4 border border-gray-300 rounded-lg transition-colors flex items-center justify-center gap-2 bg-white hover:bg-gray-50"
                     >
+                        <X size={16} />
                         Anuluj
-                    </Button>
+                    </button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>

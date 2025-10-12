@@ -7,6 +7,7 @@ import {
     PlusCircle,
     Clock,
     Loader2,
+    Download,
 } from "lucide-react"; // 🌀 Dodano Loader2
 import { SwiperModal } from "@/components/SwiperMd";
 
@@ -514,64 +515,70 @@ export default function AdminPage() {
                     </form>
                 </div>
 
-                <div className="w-full bg-white border border-gray-200 p-6 shadow rounded-2xl space-y-3">
-                    <button
-                        onClick={async () => {
-                            setDownloading(true); // start loadera
-                            try {
-                                const res = await fetch(
-                                    "/api/export-transports"
-                                );
-                                if (!res.ok) throw new Error("Błąd eksportu");
-                                const blob = await res.blob();
-                                const url = window.URL.createObjectURL(blob);
-                                const a = document.createElement("a");
-                                a.href = url;
-                                a.download = `${
-                                    settings.page_title || "Dostawy"
-                                }.zip`;
-                                a.click();
-                                window.URL.revokeObjectURL(url);
-                            } catch (err) {
-                                alert("Nie udało się pobrać pliku.");
-                                console.error(err);
-                            } finally {
-                                setDownloading(false); // stop loadera
-                            }
-                        }}
-                        disabled={downloading}
-                            className="text-sky-700 w-full hover:text-sky-600 hover:border-sky-200  font-semibold text-sm py-2 px-4 bg-sky-50 hover:bg-sky-100 transition-colors rounded-lg border border-sky-500"
-                    >
-                        {downloading ? (
-                            <>
-                                <Loader2 className="animate-spin" size={18} />
-                                Pobieranie...
-                            </>
-                        ) : (
-                            <>Pobierz transporty</>
-                        )}
-                    </button>
-                    <RoutePlanDialog
-                        open={showRouteModal}
-                        onClose={() => setShowRouteModal(false)}
-                        handleRoutePlan={handleRoutePlan}
-                    />
 
-                    <button
-                        onClick={() => setShowRouteModal(true)}
-                        disabled={calculating}
-                             className="text-pink-700 w-full hover:text-pink-600 hover:border-pink-200  font-semibold text-sm py-2 px-4 bg-pink-50 hover:bg-pink-100 transition-colors rounded-lg border border-pink-500"
-                    >
-                        {calculating ? (
-                            <>
-                                <Loader2 className="animate-spin" size={18} />
-                                Analizuję...
-                            </>
-                        ) : (
-                            <>Rozpisz trasę</>
-                        )}
-                    </button>
-                </div>
+
+<div className="w-full bg-white border border-gray-200 p-6 shadow rounded-2xl space-y-3">
+  <button
+    onClick={async () => {
+      setDownloading(true); // start loadera
+      try {
+        const res = await fetch("/api/export-transports");
+        if (!res.ok) throw new Error("Błąd eksportu");
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${settings.page_title || "Dostawy"}.zip`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+      } catch (err) {
+        alert("Nie udało się pobrać pliku.");
+        console.error(err);
+      } finally {
+        setDownloading(false); // stop loadera
+      }
+    }}
+    disabled={downloading}
+    className="text-sky-700 w-full hover:text-sky-600 hover:border-sky-200 font-semibold text-sm py-2 px-4 bg-sky-50 hover:bg-sky-100 transition-colors rounded-lg border border-sky-500 flex items-center justify-center gap-2"
+  >
+    {downloading ? (
+      <>
+        <Loader2 className="animate-spin" size={18} />
+        Pobieranie...
+      </>
+    ) : (
+      <>
+        <Download size={18} />
+        Pobierz transporty
+      </>
+    )}
+  </button>
+
+  <RoutePlanDialog
+    open={showRouteModal}
+    onClose={() => setShowRouteModal(false)}
+    handleRoutePlan={handleRoutePlan}
+  />
+
+  <button
+    onClick={() => setShowRouteModal(true)}
+    disabled={calculating}
+    className="text-pink-700 w-full hover:text-pink-600 hover:border-pink-200 font-semibold text-sm py-2 px-4 bg-pink-50 hover:bg-pink-100 transition-colors rounded-lg border border-pink-500 flex items-center justify-center gap-2"
+  >
+    {calculating ? (
+      <>
+        <Loader2 className="animate-spin" size={18} />
+        Analizuję...
+      </>
+    ) : (
+      <>
+        <MapPin size={18} />
+        Rozpisz trasę
+      </>
+    )}
+  </button>
+</div>
+
             </aside>
 
             {modal && (
