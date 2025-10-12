@@ -122,7 +122,7 @@ export default function HomePage() {
         <div className="min-h-screen p-5 mt-2">
             {/* HEADER */}
             <header className="max-w-4xl mx-auto mb-6 flex flex-col gap-2">
-                <h1 className="text-3xl font-bold text-gray-800">
+                <h1 className="text-3xl font-bold text-gray-800 mb-3">
                     {settings.page_title || "Dostawy"}
                 </h1>
                 <div className="flex flex-row items-center justify-between sm:gap-6 text-gray-600 font-medium text-lg">
@@ -187,7 +187,7 @@ export default function HomePage() {
                                     <h2 className="text-xl font-semibold text-gray-800">
                                         {o.client_name}
                                     </h2>
-                                    <span className="inline-block bg-gray-100 text-gray-700 px-3 py-1 rounded-full font-medium">
+                                    <span className="inline-block bg-gray-100 text-gray-700 px-3 py-2 rounded-xl font-medium">
                                         {o.type}
                                     </span>
                                     {o.description && (
@@ -196,10 +196,10 @@ export default function HomePage() {
                                         </p>
                                     )}
 
-                                    <div className="flex flex-col gap-2">
+                                    <div className="flex flex-col gap-4">
                                         <a
                                             href={`tel:${o.phone_number}`}
-                                            className="flex items-center gap-2 bg-green-50 rounded-xl px-4 py-2 font-medium hover:bg-green-100 transition-colors"
+                                            className="flex items-center gap-2 bg-green-50 text-green-800 rounded-xl px-4 py-2 font-medium hover:bg-green-100 transition-colors"
                                         >
                                             <Phone size={20} /> {o.phone_number}
                                         </a>
@@ -209,7 +209,7 @@ export default function HomePage() {
                                             )}`}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="flex items-center gap-2 bg-blue-50 rounded-xl px-4 py-2 text-gray-700 font-medium hover:bg-blue-100 transition-colors"
+                                            className="flex items-center gap-2 bg-blue-50 rounded-xl text-blue-800 px-4 py-2 font-medium hover:bg-blue-100 transition-colors"
                                         >
                                             <MapPin size={20} /> {o.address}
                                         </a>
