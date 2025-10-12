@@ -7,7 +7,6 @@ import {
     PlusCircle,
     Clock,
     Loader2,
-    CheckCircle,
 } from "lucide-react"; // 🌀 Dodano Loader2
 import { SwiperModal } from "@/components/SwiperMd";
 
@@ -58,7 +57,7 @@ export default function AdminPage() {
         index: number;
     } | null>(null);
     const [phoneError, setPhoneError] = useState("");
-    const [calculating, setCalculating] = useState(false); // 🌀 Stan do spinnera
+    const [calculating, setCalculating] = useState(false);
     const [downloading, setDownloading] = useState(false);
 
     async function loadOrders() {
@@ -167,11 +166,6 @@ export default function AdminPage() {
         return aH * 60 + aM - (bH * 60 + bM);
     });
 
-    const totalDistance = orders.reduce(
-        (acc, o) => acc + (o.travelTime || 0),
-        0
-    );
-
     const [showRouteModal, setShowRouteModal] = useState(false);
 
     async function handleRoutePlan(mode: "manual" | "auto") {
@@ -214,9 +208,9 @@ export default function AdminPage() {
     return (
         <div className="min-h-screen p-4 md:p-6 flex flex-col md:flex-row gap-6 max-w-screen-2xl mx-auto">
             <main className="flex-1 flex flex-col gap-4">
-                <div className="w-full bg-white border border-gray-200 p-6 shadow rounded-xl flex items-end justify-center space-x-4">
-                    <div className="w-full">
-                        <p className="block mb-1 font-semibold">
+                <div className="w-full bg-white border border-gray-200 p-6 pt-7 shadow rounded-xl flex items-end justify-center space-x-4">
+                    <div className="w-full relative">
+                        <p className="font-semibold absolute -top-3 left-3 bg-white px-1 text-sm text-gray-600">
                             Godzina startu dostaw
                         </p>
                         <input
@@ -235,8 +229,8 @@ export default function AdminPage() {
                         />
                     </div>
 
-                    <div className="w-full">
-                        <label className="block mb-1 font-semibold">
+                    <div className="w-full relative">
+                        <label className="font-semibold absolute -top-3 left-3 bg-white px-1 text-sm text-gray-600">
                             Tytuł dostaw
                         </label>
                         <input
