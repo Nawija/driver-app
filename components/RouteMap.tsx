@@ -1,7 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { MapContainer, TileLayer, Marker, Polyline, Popup } from "react-leaflet";
+import {
+    MapContainer,
+    TileLayer,
+    Marker,
+    Polyline,
+    Popup,
+} from "react-leaflet";
 import { motion } from "framer-motion";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -22,21 +28,30 @@ const WAREHOUSE = {
 
 export default function RouteMap({ orders }: { orders: OrderWithCoords[] }) {
     const [route, setRoute] = useState<[number, number][]>([]);
-    const [showMap, setShowMap] = useState(false); // kontrola animacji
+    const [showMap, setShowMap] = useState(false);
+
+    const parseTimeRange = (range: string) => {
+        const [start] = range.split("-").map((s) => s.trim());
+        const [h, m] = start.split(":").map(Number);
+        return h * 60 + m;
+    };
+
+    // Sortowanie orders po time_range
+    const sortedOrders = [...orders].sort((a, b) => {
+        if (!a.time_range) return 1;
+        if (!b.time_range) return -1;
+        return parseTimeRange(a.time_range) - parseTimeRange(b.time_range);
+    });
 
     useEffect(() => {
-        if (orders.length) {
-            const validCoords = orders
-                .map((o) => o.coords)
-                .filter((c): c is [number, number] => !!c);
-
-            setRoute([WAREHOUSE.coords, ...validCoords]);
+        if (sortedOrders.length) {
+            const coordsOnly = sortedOrders.map((o) => o.coords!); // kolejność dokładnie taka jak w sortedsortedOrders
+            setRoute([WAREHOUSE.coords, ...coordsOnly]);
         }
 
-        // trigger animacji po zamontowaniu komponentu
         const timer = setTimeout(() => setShowMap(true), 100);
         return () => clearTimeout(timer);
-    }, [orders]);
+    }, [sortedOrders]);
 
     const warehouseIcon = new L.Icon({
         iconUrl: "/home.svg",
@@ -55,15 +70,15 @@ export default function RouteMap({ orders }: { orders: OrderWithCoords[] }) {
     return (
         <motion.div
             initial={{ height: 0 }}
-            animate={{ height: hasCoords ? 400 : 0 }}
+            animate={{ height: hasCoords ? 600 : 0 }}
             transition={{ duration: 0.8, ease: "easeInOut" }}
-            className="w-full rounded-2xl overflow-hidden z-0 h-[400px]"
+            className="w-full rounded-2xl overflow-hidden z-0"
         >
             {showMap && (
                 <MapContainer
                     center={WAREHOUSE.coords}
                     zoom={12}
-                    style={{ width: "100%", height: "400px" }}
+                    style={{ width: "100%", height: "600px" }}
                 >
                     <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
@@ -71,9 +86,13 @@ export default function RouteMap({ orders }: { orders: OrderWithCoords[] }) {
                         <Popup>{WAREHOUSE.name}</Popup>
                     </Marker>
 
-                    {orders.map((o, i) =>
+                    {sortedOrders.map((o, i) =>
                         o.coords ? (
-                            <Marker key={o.id} position={o.coords} icon={orderIcon}>
+                            <Marker
+                                key={o.id}
+                                position={o.coords}
+                                icon={orderIcon}
+                            >
                                 <Popup>
                                     {i + 1}. {o.client_name} ({o.time_range})
                                 </Popup>
