@@ -268,7 +268,7 @@ export default function AdminPage() {
                         address: o.address,
                         time_range: o.time_range,
                         completed: o.completed,
-                        coords: o.coords ,
+                        coords: o.coords,
                     }))}
                 />
 
@@ -539,14 +539,17 @@ export default function AdminPage() {
                                 );
                                 if (!res.ok) throw new Error("Błąd eksportu");
                                 const blob = await res.blob();
-                                const url = window.URL.createObjectURL(blob);
-                                const a = document.createElement("a");
-                                a.href = url;
-                                a.download = `${
-                                    settings.page_title || "Dostawy"
-                                }.zip`;
-                                a.click();
-                                window.URL.revokeObjectURL(url);
+                                if (typeof window !== "undefined") {
+                                    const url =
+                                        window.URL.createObjectURL(blob);
+                                    const a = document.createElement("a");
+                                    a.href = url;
+                                    a.download = `${
+                                        settings.page_title || "Dostawy"
+                                    }.zip`;
+                                    a.click();
+                                    window.URL.revokeObjectURL(url);
+                                }
                             } catch (err) {
                                 alert("Nie udało się pobrać pliku.");
                                 console.error(err);
