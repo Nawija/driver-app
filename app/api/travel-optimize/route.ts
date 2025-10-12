@@ -181,7 +181,7 @@ export async function POST(req: Request) {
     const matrixData = await matrixRes.json();
 
     // 7️⃣ Harmonogram
-    let currentTime = startHour;
+    let currentTime = startHour + 1;
     const updatedOrders = [];
 
     for (let i = 0; i < orderedOrders.length; i++) {

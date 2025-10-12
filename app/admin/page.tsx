@@ -199,6 +199,17 @@ export default function AdminPage() {
             setCalculating(false);
         }
     }
+    const parseTimeRange = (range: string) => {
+        const [start] = range.split("-").map((s) => s.trim());
+        const [h, m] = start.split(":").map(Number);
+        return h * 60 + m;
+    };
+    // Sortowanie orders po time_range
+    const sortedOrders = [...orders].sort((a, b) => {
+        if (!a.time_range) return 1; // brak godziny na końcu
+        if (!b.time_range) return -1;
+        return parseTimeRange(a.time_range) - parseTimeRange(b.time_range);
+    });
 
     return (
         <div className="min-h-screen p-4 md:p-6 flex flex-col md:flex-row gap-6 max-w-screen-2xl mx-auto">
@@ -288,7 +299,7 @@ export default function AdminPage() {
                                         setDeleting(null);
                                     }
                                 }}
-                                className="text-red-700  hover:text-red-600 hover:border-red-200 cursor-pointer font-semibold text-xs py-1.5 px-4 bg-red-50 hover:bg-red-100 transition-colors rounded-lg border border-red-500"
+                                className="text-red-700  hover:text-red-600 hover:border-red-200  font-semibold text-xs py-1.5 px-4 bg-red-50 hover:bg-red-100 transition-colors rounded-lg border border-red-500"
                             >
                                 Usuń wszystkie zlecenia
                             </button>
@@ -314,7 +325,7 @@ export default function AdminPage() {
                         collapsible
                         className="flex flex-col gap-4 w-full"
                     >
-                        {orders.map((o) => (
+                        {sortedOrders.map((o) => (
                             <AccordionItem
                                 key={o.id}
                                 value={`order-${o.id}`}
@@ -341,7 +352,12 @@ export default function AdminPage() {
                                         }`}
                                     >
                                         {o.completed
-                                            ? "Zrealizowano"
+                                            ? `Zrealizowano ${new Date(
+                                                  o.completed_at ?? ""
+                                              ).toLocaleTimeString([], {
+                                                  hour: "2-digit",
+                                                  minute: "2-digit",
+                                              })}`
                                             : "Do realizacji"}
                                     </span>
                                 </AccordionTrigger>
@@ -388,7 +404,7 @@ export default function AdminPage() {
                                                             index: j,
                                                         })
                                                     }
-                                                    className="w-20 h-20 rounded-xl overflow-hidden shadow-sm flex-shrink-0 cursor-pointer"
+                                                    className="w-20 h-20 rounded-xl overflow-hidden shadow-sm flex-shrink-0 "
                                                 >
                                                     <img
                                                         src={url}
@@ -503,7 +519,7 @@ export default function AdminPage() {
 
                         <button
                             disabled={adding}
-                            className="bg-blue-600 hover:bg-blue-700 cursor-pointer text-white py-2 rounded-lg font-semibold transition-all"
+                            className="bg-blue-600 hover:bg-blue-700  text-white py-2 rounded-lg font-semibold transition-all"
                         >
                             {adding ? "Dodawanie..." : "Dodaj zlecenie"}
                         </button>
@@ -536,7 +552,7 @@ export default function AdminPage() {
                             }
                         }}
                         disabled={downloading}
-                        className={`w-full text-white px-4 py-2 cursor-pointer rounded-lg font-semibold transition flex items-center justify-center gap-2 ${
+                        className={`w-full text-white px-4 py-2  rounded-lg font-semibold transition flex items-center justify-center gap-2 ${
                             downloading
                                 ? "bg-gray-600 cursor-wait"
                                 : "bg-gray-700 hover:bg-gray-900"
@@ -560,7 +576,7 @@ export default function AdminPage() {
                     <button
                         onClick={() => setShowRouteModal(true)}
                         disabled={calculating}
-                        className={`w-full text-white px-4 py-2 cursor-pointer rounded-lg font-semibold transition flex items-center justify-center gap-2 ${
+                        className={`w-full text-white px-4 py-2  rounded-lg font-semibold transition flex items-center justify-center gap-2 ${
                             calculating
                                 ? "bg-pink-400 cursor-wait"
                                 : "bg-pink-600 hover:bg-pink-700"
