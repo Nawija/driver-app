@@ -18,7 +18,7 @@ type OrderWithCoords = {
     address: string;
     time_range: string;
     completed: boolean;
-    coords?: [number, number];
+    coords?: [number, number] | undefined;
 };
 
 const WAREHOUSE = {
@@ -43,17 +43,17 @@ export default function RouteMap({ orders }: { orders: OrderWithCoords[] }) {
         return parseTimeRange(a.time_range) - parseTimeRange(b.time_range);
     });
 
-    useEffect(() => {
-        if (sortedOrders.length) {
-            const coordsOnly = sortedOrders
-                .map((o) => o.coords)
-                .filter((c): c is [number, number] => c !== undefined);
-            setRoute([WAREHOUSE.coords, ...coordsOnly]);
-        }
+  useEffect(() => {
+    if (sortedOrders.length) {
+        const coordsOnly = sortedOrders
+            .map((o) => o.coords)
+            .filter((c): c is [number, number] => c !== undefined);
+        setRoute([WAREHOUSE.coords, ...coordsOnly]);
+    }
 
-        const timer = setTimeout(() => setShowMap(true), 100);
-        return () => clearTimeout(timer);
-    }, [sortedOrders]);
+    const timer = setTimeout(() => setShowMap(true), 100);
+    return () => clearTimeout(timer);
+}, [sortedOrders]);
 
     const warehouseIcon = new L.Icon({
         iconUrl: "/home.svg",
@@ -102,9 +102,9 @@ export default function RouteMap({ orders }: { orders: OrderWithCoords[] }) {
                         ) : null
                     )}
 
-                    {route.length > 1 && (
+                    {route.length > 1 && route.every(Boolean) && (
                         <Polyline
-                            positions={route}
+                            positions={route as [number, number][]}
                             pathOptions={{ color: "#3b82f6", weight: 4 }}
                         />
                     )}
