@@ -245,6 +245,7 @@ export async function POST(req: Request) {
 
             updatedOrders.push({
                 ...o,
+                coords: [coords[i][1], coords[i][0]],
                 travelTime: travelMinutes,
                 distanceKm,
                 time_range,

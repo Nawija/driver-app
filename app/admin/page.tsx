@@ -8,6 +8,7 @@ import {
     Clock,
     Loader2,
     Download,
+    Route,
 } from "lucide-react"; // 🌀 Dodano Loader2
 import { SwiperModal } from "@/components/SwiperMd";
 
@@ -19,6 +20,7 @@ import {
 } from "@/components/ui/accordion";
 import LoadingAcordeonSkeleon from "@/components/LoadingAcordeonSkeleon";
 import { RoutePlanDialog } from "@/components/RoutePlanDialog";
+import RouteMap from "@/components/RouteMap";
 
 type Order = {
     id: number;
@@ -32,6 +34,7 @@ type Order = {
     completed_at?: string;
     photo_urls?: string[];
     travelTime?: number;
+    coords?: [number, number];
 };
 
 export default function AdminPage() {
@@ -207,7 +210,7 @@ export default function AdminPage() {
     });
 
     return (
-        <div className="min-h-screen p-4 md:p-6 flex flex-col md:flex-row gap-6 max-w-screen-2xl mx-auto">
+        <div className="min-h-screen p-4 md:p-6 flex flex-col md:flex-row gap-6 max-w-screen-2xl mx-auto mb-40">
             <main className="flex-1 flex flex-col gap-4">
                 <div className="w-full flex-col md:flex-row bg-white border border-gray-200 p-6 pt-7 shadow rounded-xl flex items-end justify-center md:space-x-4 md:space-y-0 space-y-5">
                     <div className="w-full md:max-w-60 relative">
@@ -257,6 +260,17 @@ export default function AdminPage() {
                             : "Zapisz ustawienia"}
                     </button>
                 </div>
+
+                <RouteMap
+                    orders={orders.map((o, i) => ({
+                        id: o.id,
+                        client_name: o.client_name,
+                        address: o.address,
+                        time_range: o.time_range,
+                        completed: o.completed,
+                        coords: o.coords ,
+                    }))}
+                />
 
                 <div className="font-semibold text-lg text-slate-800 flex justify-between items-center mt-4">
                     <span>
