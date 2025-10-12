@@ -45,7 +45,9 @@ export default function RouteMap({ orders }: { orders: OrderWithCoords[] }) {
 
     useEffect(() => {
         if (sortedOrders.length) {
-            const coordsOnly = sortedOrders.map((o) => o.coords!); // kolejność dokładnie taka jak w sortedsortedOrders
+            const coordsOnly = sortedOrders
+                .map((o) => o.coords)
+                .filter((c): c is [number, number] => c !== undefined);
             setRoute([WAREHOUSE.coords, ...coordsOnly]);
         }
 
