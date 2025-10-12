@@ -530,7 +530,7 @@ export default function AdminPage() {
                 </div>
 
                 <div className="w-full bg-white border border-gray-200 p-6 shadow rounded-2xl space-y-3">
-                    <button
+                    {/* <button
                         onClick={async () => {
                             setDownloading(true); // start loadera
                             try {
@@ -571,7 +571,7 @@ export default function AdminPage() {
                                 Pobierz transporty
                             </>
                         )}
-                    </button>
+                    </button> */}
 
                     <RoutePlanDialog
                         open={showRouteModal}
