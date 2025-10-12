@@ -261,7 +261,7 @@ export default function AdminPage() {
                     </button>
                 </div>
 
-                <RouteMap
+                {/* <RouteMap
                     orders={orders.map((o, i) => ({
                         id: o.id,
                         client_name: o.client_name,
@@ -270,7 +270,7 @@ export default function AdminPage() {
                         completed: o.completed,
                         coords: o.coords,
                     }))}
-                />
+                /> */}
 
                 <div className="font-semibold text-lg text-slate-800 flex justify-between items-center mt-4">
                     <span>
@@ -530,7 +530,7 @@ export default function AdminPage() {
                 </div>
 
                 <div className="w-full bg-white border border-gray-200 p-6 shadow rounded-2xl space-y-3">
-                    {/* <button
+                    <button
                         onClick={async () => {
                             setDownloading(true); // start loadera
                             try {
@@ -571,7 +571,7 @@ export default function AdminPage() {
                                 Pobierz transporty
                             </>
                         )}
-                    </button> */}
+                    </button>
 
                     <RoutePlanDialog
                         open={showRouteModal}
