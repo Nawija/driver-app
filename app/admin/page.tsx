@@ -343,30 +343,42 @@ export default function AdminPage() {
                                 }`}
                             >
                                 <AccordionTrigger className="flex justify-between items-center p-4 text-lg font-medium">
-                                    {o.time_range ? (
-                                        <div className="flex items-center gap-2">
-                                            <Clock size={20} />{" "}
-                                            {o.time_range || "Brak godziny"}
-                                        </div>
-                                    ) : (
-                                        <p className="">{o.address}</p>
-                                    )}
-                                    <span
-                                        className={`px-3 py-1 rounded-xl text-xs md:text-sm border font-medium ${
-                                            o.completed
-                                                ? "bg-green-100 text-green-700 border-green-200"
-                                                : "bg-gray-200 text-gray-700 border-gray-300"
-                                        }`}
-                                    >
-                                        {o.completed
-                                            ? `Zrealizowano ${new Date(
-                                                  o.completed_at ?? ""
-                                              ).toLocaleTimeString("pl-PL", {
-                                                  hour: "2-digit",
-                                                  minute: "2-digit",
-                                              })}`
-                                            : "Do realizacji"}
-                                    </span>
+                                    <div className="w-full flex items-start justify-between">
+                                        {o.time_range ? (
+                                            <div className="flex items-center gap-2">
+                                                <Clock size={20} />{" "}
+                                                {o.time_range || "Brak godziny"}
+                                            </div>
+                                        ) : (
+                                            <div className="flex items-center justify-center gap-3">
+                                                <p className="">
+                                                    {o.client_name}
+                                                </p>
+                                                <p className=" text-gray-500 text-sm">
+                                                    {o.address}
+                                                </p>
+                                            </div>
+                                        )}
+                                        <span
+                                            className={`px-3 py-1 rounded-xl text-xs md:text-sm border font-medium ${
+                                                o.completed
+                                                    ? "bg-green-100 text-green-700 border-green-200"
+                                                    : "bg-gray-200 text-gray-700 border-gray-300"
+                                            }`}
+                                        >
+                                            {o.completed
+                                                ? `Zrealizowano ${new Date(
+                                                      o.completed_at ?? ""
+                                                  ).toLocaleTimeString(
+                                                      "pl-PL",
+                                                      {
+                                                          hour: "2-digit",
+                                                          minute: "2-digit",
+                                                      }
+                                                  )}`
+                                                : "Do realizacji"}
+                                        </span>
+                                    </div>
                                 </AccordionTrigger>
 
                                 <AccordionContent className="p-4 flex flex-col gap-3 border-t border-gray-200 relative">

@@ -233,7 +233,7 @@ export async function POST(req: Request) {
             idToMatrixIndex.set(validOrders[i].id, i + 1);
         }
 
-        let currentTime = startHour + 1;
+        let currentTime = startHour + 0.5;
         const updatedOrders: UpdatedOrder[] = [];
 
         for (let i = 0; i < orderedOrders.length; i++) {
@@ -259,7 +259,7 @@ export async function POST(req: Request) {
                     ? 0.5
                     : o.type === "Transport + wniesienie"
                     ? 1
-                    : 2;
+                    : 1.7;
 
             const start = currentTime + travelMinutes / 60;
             const end = start + durationHours;
