@@ -8,8 +8,7 @@ import {
     Clock,
     Loader2,
     Download,
-    Route,
-} from "lucide-react"; // 🌀 Dodano Loader2
+} from "lucide-react";
 import { SwiperModal } from "@/components/SwiperMd";
 
 import {
@@ -214,6 +213,7 @@ export default function AdminPage() {
 
     return (
         <div className="min-h-screen p-4 md:p-6 flex flex-col md:flex-row gap-6 max-w-screen-2xl mx-auto mb-40">
+            <div id="delivery" className="scroll-m-24 hidden lg:block" />
             <main className="flex-1 flex flex-col gap-4">
                 <div className="w-full flex-col md:flex-row bg-white border border-gray-200 p-6 pt-7 shadow rounded-xl flex items-end justify-center md:space-x-4 md:space-y-0 space-y-5">
                     <div className="w-full md:max-w-60 relative">
@@ -256,17 +256,17 @@ export default function AdminPage() {
                     <button
                         onClick={saveSettings}
                         disabled={savingSettings}
-                        className="text-blue-700  hover:text-blue-600 hover:border-blue-200 w-full md:w-auto  font-semibold text-sm md:text-xs py-2 md:py-1.5 px-4 bg-blue-50 hover:bg-blue-100 transition-colors rounded-lg border border-blue-500"
+                        className="text-blue-700 w-full md:w-80 hover:text-blue-600 hover:border-blue-200 font-semibold text-sm md:text-xs py-2 md:py-3 px-4 bg-blue-50 hover:bg-blue-100 transition-colors rounded-lg border border-blue-500"
                     >
                         {savingSettings
                             ? "Zapisywanie..."
                             : "Zapisz ustawienia"}
                     </button>
                 </div>
-                <div id="delivery" className="scroll-m-24" />
+                <div id="delivery" className="scroll-m-24 lg:hidden" />
 
                 <RouteMap
-                    orders={orders.map((o, i) => ({
+                    orders={orders.map((o) => ({
                         id: o.id,
                         client_name: o.client_name,
                         address: o.address,
@@ -385,7 +385,7 @@ export default function AdminPage() {
                                     <h2 className="text-lg font-semibold">
                                         {o.client_name}
                                     </h2>
-                                    <span className="text-sm text-gray-500">
+                                    <span className="text-sm text-gray-800 bg-gray-100 w-fit px-2 py-1 rounded-lg border border-gray-200">
                                         {o.type}
                                     </span>
                                     {o.description && (
@@ -396,7 +396,7 @@ export default function AdminPage() {
 
                                     <a
                                         href={`tel:${o.phone_number}`}
-                                        className="flex items-center gap-2 text-gray-700 hover:text-blue-600"
+                                        className="flex items-center gap-2 text-base text-green-700 hover:text-green-600"
                                     >
                                         <Phone size={18} /> {o.phone_number}
                                     </a>
@@ -407,7 +407,7 @@ export default function AdminPage() {
                                         )}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="flex items-center gap-2 text-gray-700 hover:text-blue-600"
+                                        className="flex items-center gap-2 text-base text-blue-700 hover:text-blue-600"
                                     >
                                         <MapPin size={18} /> {o.address}
                                     </a>
