@@ -20,7 +20,7 @@ export async function GET() {
       // nazwa pliku: numer + klient
       const fileName = `${String(index + 1).padStart(2, "0")}_${sanitize(o.client_name)}.txt`;
       // Tworzymy główny folder w ZIP
-      const mainFolder = zip.folder(sanitize(fileName));
+      const mainFolder = zip.folder(sanitize(`${o.client_name}`));
       if (!mainFolder) throw new Error("Nie udało się utworzyć głównego folderu w ZIP");
 
       const info = [
