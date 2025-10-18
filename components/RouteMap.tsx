@@ -43,17 +43,17 @@ export default function RouteMap({ orders }: { orders: OrderWithCoords[] }) {
         return parseTimeRange(a.time_range) - parseTimeRange(b.time_range);
     });
 
-  useEffect(() => {
-    if (sortedOrders.length) {
-        const coordsOnly = sortedOrders
-            .map((o) => o.coords)
-            .filter((c): c is [number, number] => c !== undefined);
-        setRoute([WAREHOUSE.coords, ...coordsOnly]);
-    }
+    useEffect(() => {
+        if (sortedOrders.length) {
+            const coordsOnly = sortedOrders
+                .map((o) => o.coords)
+                .filter((c): c is [number, number] => c !== undefined);
+            setRoute([WAREHOUSE.coords, ...coordsOnly]);
+        }
 
-    const timer = setTimeout(() => setShowMap(true), 100);
-    return () => clearTimeout(timer);
-}, [sortedOrders]);
+        const timer = setTimeout(() => setShowMap(true), 100);
+        return () => clearTimeout(timer);
+    }, [sortedOrders]);
 
     const warehouseIcon = new L.Icon({
         iconUrl: "/home.svg",
@@ -93,10 +93,44 @@ export default function RouteMap({ orders }: { orders: OrderWithCoords[] }) {
                             <Marker
                                 key={o.id}
                                 position={o.coords}
-                                icon={orderIcon}
+                                icon={
+                                    new L.DivIcon({
+                                        html: `<div style="
+                        background-color:#b51c51;
+                        color:white;
+                        border-radius:50%;
+                        width:20px;
+                        height:20px;
+                        display:flex;
+                        align-items:center;
+                        justify-content:center;
+                        font-size:12px;
+                        font-weight:bold;
+                        pointer-events:auto;
+                        border:1px solid white;
+                        pointer-events: none;
+                        box-shadow:0 0 4px rgba(0,0,0,0.3);
+                    ">${i + 1}</div>`,
+                                        className: "",
+                                        iconSize: [40, 40],
+                                        iconAnchor: [12, 12],
+                                    })
+                                }
                             >
                                 <Popup>
-                                    {i + 1}. {o.client_name} ({o.time_range})
+                                    <div
+                                        style={{
+                                            display: "flex",
+                                            flexDirection: "column",
+                                            gap: "4px",
+                                        }}
+                                    >
+                                        <strong>
+                                            {i + 1}. Godzina: ({o.time_range})
+                                        </strong>
+                                        <span className="ml-4">{o.client_name}</span>
+                                        <span className="ml-4">{o.address}</span>
+                                    </div>
                                 </Popup>
                             </Marker>
                         ) : null
