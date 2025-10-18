@@ -346,8 +346,8 @@ export default function HomePage() {
 
             {/* FULLSCREEN PODPIS */}
             {activeSignatureOrder !== null && (
-                <div className="fixed inset-0 bg-black/70 z-50 flex flex-col items-center justify-center p-4">
-                    <div className="bg-white w-full h-full flex flex-col items-center justify-center relative rounded-xl">
+                <div className="fixed inset-0 bg-black/70 z-50 flex flex-col items-center justify-center">
+                    <div className="bg-white w-full h-full flex flex-col items-center justify-center relative">
                         <button
                             className="absolute top-4 right-4 p-2 text-gray-600 hover:text-black"
                             onClick={() => setActiveSignatureOrder(null)}
@@ -358,10 +358,10 @@ export default function HomePage() {
                             ref={sigCanvas}
                             penColor="black"
                             canvasProps={{
-                                className: "w-full h-full border rounded-xl",
+                                className: "w-full h-full",
                             }}
                         />
-                        <div className="flex gap-4 mt-2 pb-2">
+                        <div className="flex gap-4 mt-2 pb-2 text-sm">
                             <button
                                 className="px-4 py-2 bg-gray-200 rounded"
                                 onClick={() => sigCanvas.current?.clear()}
@@ -370,7 +370,7 @@ export default function HomePage() {
                             </button>
 
                             <button
-                                className="px-4 py-2 bg-green-800 text-white rounded flex items-center justify-center gap-2"
+                                className="px-4 py-2 bg-green-700 text-white rounded flex items-center justify-center gap-2"
                                 onClick={async () => {
                                     if (
                                         !sigCanvas.current ||
