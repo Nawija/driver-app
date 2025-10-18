@@ -18,7 +18,7 @@ type OrderWithCoords = {
     address: string;
     time_range: string;
     completed: boolean;
-    coords?: [number, number] | undefined;
+    coords?: [number, number];
 };
 
 const WAREHOUSE = {
@@ -43,8 +43,13 @@ export default function RouteMap({ orders }: { orders: OrderWithCoords[] }) {
         return parseTimeRange(a.time_range) - parseTimeRange(b.time_range);
     });
 
+    // Sprawdzenie, czy wszystkie zamówienia mają time_range
+    const allHaveTimeRange = sortedOrders.every(
+        (o) => o.time_range && o.time_range.trim() !== ""
+    );
+
     useEffect(() => {
-        if (sortedOrders.length) {
+        if (sortedOrders.length && allHaveTimeRange) {
             const coordsOnly = sortedOrders
                 .map((o) => o.coords)
                 .filter((c): c is [number, number] => c !== undefined);
@@ -53,7 +58,7 @@ export default function RouteMap({ orders }: { orders: OrderWithCoords[] }) {
 
         const timer = setTimeout(() => setShowMap(true), 100);
         return () => clearTimeout(timer);
-    }, [sortedOrders]);
+    }, [sortedOrders, allHaveTimeRange]);
 
     const warehouseIcon = new L.Icon({
         iconUrl: "/home.svg",
@@ -61,13 +66,10 @@ export default function RouteMap({ orders }: { orders: OrderWithCoords[] }) {
         iconAnchor: [12, 25],
     });
 
-    const orderIcon = new L.Icon({
-        iconUrl: "/map-pin.svg",
-        iconSize: [20, 20],
-        iconAnchor: [10, 20],
-    });
-
     const hasCoords = orders.some((o) => o.coords);
+
+    // Render mapy tylko jeśli wszystkie orders mają time_range
+    if (!allHaveTimeRange) return null;
 
     return (
         <motion.div
@@ -76,7 +78,7 @@ export default function RouteMap({ orders }: { orders: OrderWithCoords[] }) {
             transition={{ duration: 0.8, ease: "easeInOut" }}
             className="w-full rounded-2xl overflow-hidden z-0"
         >
-            {showMap && (
+            {showMap && route.length > 1 && (
                 <MapContainer
                     center={WAREHOUSE.coords}
                     zoom={12}
@@ -88,15 +90,16 @@ export default function RouteMap({ orders }: { orders: OrderWithCoords[] }) {
                         <Popup>{WAREHOUSE.name}</Popup>
                     </Marker>
 
-                    {sortedOrders.map((o, i) =>
-                        o.coords ? (
-                            <Marker
-                                key={o.id}
-                                position={o.coords}
-                                icon={
-                                    new L.DivIcon({
-                                        html: `<div style="
-                        background-color:#b51c51;
+                    {sortedOrders.map(
+                        (o, i) =>
+                            o.coords && (
+                                <Marker
+                                    key={o.id}
+                                    position={o.coords}
+                                    icon={
+                                        new L.DivIcon({
+                                            html: `<div style="
+                        background-color:${o.completed ? "#119334" : "#d23f73"};
                         color:white;
                         border-radius:50%;
                         width:20px;
@@ -106,40 +109,44 @@ export default function RouteMap({ orders }: { orders: OrderWithCoords[] }) {
                         justify-content:center;
                         font-size:12px;
                         font-weight:bold;
-                        pointer-events:auto;
+                        pointer-events:none;
                         border:1px solid white;
-                        pointer-events: none;
                         box-shadow:0 0 4px rgba(0,0,0,0.3);
                     ">${i + 1}</div>`,
-                                        className: "",
-                                        iconSize: [40, 40],
-                                        iconAnchor: [12, 12],
-                                    })
-                                }
-                            >
-                                <Popup>
-                                    <div
-                                        style={{
-                                            display: "flex",
-                                            flexDirection: "column",
-                                            gap: "4px",
-                                        }}
-                                    >
-                                        <strong>
-                                            {i + 1}. Godzina: ({o.time_range})
-                                        </strong>
-                                        <span className="ml-4">{o.client_name}</span>
-                                        <span className="ml-4">{o.address}</span>
-                                    </div>
-                                </Popup>
-                            </Marker>
-                        ) : null
+                                            className: "",
+                                            iconSize: [35, 35],
+                                            iconAnchor: [12, 12],
+                                        })
+                                    }
+                                >
+                                    <Popup>
+                                        <div
+                                            style={{
+                                                display: "flex",
+                                                flexDirection: "column",
+                                                gap: "4px",
+                                            }}
+                                        >
+                                            <strong>
+                                                {i + 1}. Godzina: (
+                                                {o.time_range})
+                                            </strong>
+                                            <span className="ml-4">
+                                                {o.client_name}
+                                            </span>
+                                            <span className="ml-4">
+                                                {o.address}
+                                            </span>
+                                        </div>
+                                    </Popup>
+                                </Marker>
+                            )
                     )}
 
                     {route.length > 1 && route.every(Boolean) && (
                         <Polyline
                             positions={route as [number, number][]}
-                            pathOptions={{ color: "#3b82f6", weight: 4 }}
+                            pathOptions={{ color: "#4f8df0", weight: 4 }}
                         />
                     )}
                 </MapContainer>
