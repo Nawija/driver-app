@@ -158,7 +158,7 @@ export async function POST(req: Request) {
             id: 1,
             profile: "driving-car",
             start: warehouseCoords,
-            end: warehouseCoords,
+            end: [22.253986, 52.405573],
         };
 
         const jobs = validOrders.map((o, i) => ({
@@ -268,14 +268,30 @@ export async function POST(req: Request) {
             const startStr = floorHalfHour(start);
             const endStr = ceilHalfHour(end);
             const time_range = fixTimeRange(startStr, endStr);
-
-            await sql`
-    UPDATE orders
-    SET time_range = ${time_range}
-    WHERE id = ${o.id};
-  `;
-
             const coordPair = coords[toIndex - 1];
+
+            if (
+                !coordPair ||
+                coordPair.length !== 2 ||
+                !Number.isFinite(coordPair[0]) ||
+                !Number.isFinite(coordPair[1])
+            ) {
+                console.warn(
+                    `⚠️ Niepoprawne współrzędne dla zamówienia ${o.id}, pomijam update`
+                );
+            } else {
+                const lat = Number(coordPair[0]);
+                const lon = Number(coordPair[1]);
+                const query = `
+        UPDATE orders
+        SET
+            time_range = '${time_range}',
+            coords = point(${lon}, ${lat}),
+            travel_time = ${travelMinutes}
+        WHERE id = ${o.id};
+    `;
+                await sql.query(query);
+            }
 
             const orig = inputById.get(o.id) || o;
             updatedOrders.push({

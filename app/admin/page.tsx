@@ -71,8 +71,42 @@ export default function AdminPage() {
         try {
             const res = await fetch("/api/orders");
             const data: Order[] = await res.json();
-            data.sort((a, b) => a.id - b.id);
-            setOrders(data);
+
+            const mapped: Order[] = data
+                .map((o) => {
+                    if (!o.coords) return o;
+
+                    // Jeśli coords z Neon są w formacie {x, y}
+                    if (
+                        typeof o.coords === "object" &&
+                        "x" in o.coords &&
+                        "y" in o.coords
+                    ) {
+                        return {
+                            ...o,
+                            coords: [o.coords.y, o.coords.x] as [
+                                number,
+                                number
+                            ],
+                        };
+                    }
+
+                    // Jeśli coords już jest tablicą [lon, lat]
+                    if (Array.isArray(o.coords) && o.coords.length === 2) {
+                        return {
+                            ...o,
+                            coords: [o.coords[1], o.coords[0]] as [
+                                number,
+                                number
+                            ],
+                        };
+                    }
+
+                    return o;
+                })
+                .sort((a, b) => a.id - b.id);
+
+            setOrders(mapped);
         } catch (e) {
             console.error(e);
         } finally {

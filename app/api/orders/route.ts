@@ -6,8 +6,18 @@ import { initDb } from "@/lib/db";
 export async function GET() {
     await initDb();
     const result = await sql`SELECT * FROM orders ORDER BY created_at DESC`;
-    return NextResponse.json(result.rows);
+
+    const mapped = result.rows.map((o) => {
+        if (o.coords) {
+            // coords w formacie [lat, lon] dla Leaflet
+            return { ...o, coords: [o.coords.y, o.coords.x] };
+        }
+        return o;
+    });
+
+    return NextResponse.json(mapped);
 }
+
 
 export async function POST(req: Request) {
     await initDb();

@@ -161,6 +161,7 @@ export default function HomePage() {
                     </span>
                 </div>
             </header>
+            
 
             {/* ORDERS LIST */}
             <main className="max-w-4xl mx-auto flex flex-col gap-8">
@@ -299,7 +300,7 @@ export default function HomePage() {
                                                         o.id
                                                     )
                                                 }
-                                                className="px-4 py-2 bg-blue-200 rounded-xl font-semibold flex items-center justify-center gap-2"
+                                                className="px-4 py-3 bg-blue-200 rounded-xl font-semibold flex items-center justify-center gap-2"
                                             >
                                                 <PencilLine size={20} />
                                                 <span>Podpis klienta</span>
@@ -312,7 +313,7 @@ export default function HomePage() {
                                                 onClick={() => {
                                                     if (!signatureMap[o.id]) {
                                                         alert(
-                                                            "Klient musi podpisać się przed oznaczeniem jako zrealizowane."
+                                                            "Czy napewno chcesz zrealizowac bez zdjęc?."
                                                         );
                                                         return;
                                                     }
@@ -322,7 +323,7 @@ export default function HomePage() {
                                                         signatureMap[o.id]!
                                                     );
                                                 }}
-                                                className="px-4 py-2 border cursor-pointer rounded-xl font-semibold text-gray-700 hover:bg-gray-100 transition"
+                                                className="px-4 py-3 border cursor-pointer rounded-xl font-semibold text-gray-700 hover:bg-gray-100 transition"
                                             >
                                                 Oznacz jako zrealizowane
                                             </button>
